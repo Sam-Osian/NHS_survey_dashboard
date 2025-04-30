@@ -12,9 +12,10 @@ if not uploaded_file:
     st.warning("Please upload a CSV file to continue.")
     st.stop()
 
-# Load data
+# Load data with proper typing
 def load_data(file):
     df = pd.read_csv(file)
+    # Drop index column if present
     if 'Unnamed: 0' in df.columns:
         df = df.drop(columns=['Unnamed: 0'])
     # Ensure 'Comment' column is string to avoid float indexing errors
@@ -22,19 +23,33 @@ def load_data(file):
         df['Comment'] = df['Comment'].fillna('').astype(str)
     return df
 
-# Load and prepare
+# Read and prepare data
 df = load_data(uploaded_file)
+# Rename columns for display consistency
+rename_map = {
+    'occupation_group': 'Occupation group',
+    'lgbtq': 'Sexuality',
+    'disability': 'Disability',
+    'age': 'Age group',
+    'service_line': 'Service line',
+    'division': 'Division',  # keep title case
+    'gender': 'Gender',
+    'payband': 'Pay band',
+    'staff_group': 'Staff group',
+    'bme': 'Ethnicity'
+}
+df = df.rename(columns=rename_map)
 
 total_responses = len(df)
 
-# Define expected structure
+# Define columns after rename
 demographic_cols = [
-    'occupation_group', 'lgbtq', 'disability', 'age', 'service_line',
-    'division', 'gender', 'payband', 'staff_group', 'bme'
+    'Occupation group', 'Sexuality', 'Disability', 'Age group', 'Service line',
+    'Division', 'Gender', 'Pay band', 'Staff group', 'Ethnicity'
 ]
 tags = ['suggestion', 'urgent', 'positive', 'negative']
 all_cols = df.columns.tolist()
-# Identify theme columns dynamically
+# Identify theme columns dynamically (exclude demographics, comments, and tags)
 theme_cols = [c for c in all_cols if c not in demographic_cols + ['Comment'] + tags]
 
 # Validation: check for missing expected columns
