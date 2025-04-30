@@ -32,20 +32,23 @@ rename_map = {
     'disability': 'Disability',
     'age': 'Age group',
     'service_line': 'Service line',
-    'division': 'Division',  # keep title case
     'gender': 'Gender',
     'payband': 'Pay band',
     'staff_group': 'Staff group',
     'bme': 'Ethnicity'
 }
 df = df.rename(columns=rename_map)
+# Drop unwanted 'division' column if present
+if 'division' in df.columns:
+    df = df.drop(columns=['division'])
 
+# Total responses count
 total_responses = len(df)
 
 # Define columns after rename
 demographic_cols = [
-    'Occupation group', 'Sexuality', 'Disability', 'Age group', 'Service line',
-    'Division', 'Gender', 'Pay band', 'Staff group', 'Ethnicity'
+    'Occupation group', 'Sexuality', 'Disability', 'Age group',
+    'Service line', 'Gender', 'Pay band', 'Staff group', 'Ethnicity'
 ]
 tags = ['suggestion', 'urgent', 'positive', 'negative']
 all_cols = df.columns.tolist()
