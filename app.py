@@ -22,17 +22,27 @@ def load_data(file):
         df['Comment'] = df['Comment'].fillna('').astype(str)
     return df
 
+# Load and prepare
 df = load_data(uploaded_file)
+
 total_responses = len(df)
 
-# Define columns
+# Define expected structure
 demographic_cols = [
     'occupation_group', 'lgbtq', 'disability', 'age', 'service_line',
     'division', 'gender', 'payband', 'staff_group', 'bme'
 ]
 tags = ['suggestion', 'urgent', 'positive', 'negative']
 all_cols = df.columns.tolist()
+# Identify theme columns dynamically
 theme_cols = [c for c in all_cols if c not in demographic_cols + ['Comment'] + tags]
+
+# Validation: check for missing expected columns
+expected_cols = demographic_cols + ['Comment'] + tags
+missing_cols = [c for c in expected_cols if c not in df.columns]
+if missing_cols:
+    st.error(f"Missing expected columns: {', '.join(missing_cols)}. Please check your CSV file and try again.")
+    st.stop()
 
 # App title
 st.title("Staff Survey Open-Box Comments Dashboard")
