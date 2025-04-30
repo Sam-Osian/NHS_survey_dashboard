@@ -71,6 +71,7 @@ overview_tab, themes_tab, quotes_tab = st.tabs(["Overview", "Themes", "Quotation
 # --- Overview Tab ---
 with overview_tab:
     st.header("Survey Completion by Staff Group")
+    st.markdown("Explore who has taken part in the survey and spot any under- or over-represented groups at a glance. Use the dropdowns to slice your data by job role, age bracket, pay band, ethnicity, and more — so you can quickly check that every voice is being heard and decide where to focus further engagement.")
 
     # Select dimension
     sel_group = st.selectbox("Select staff group dimension", demographic_cols)
@@ -115,6 +116,7 @@ with overview_tab:
 # --- Themes Tab ---
 with themes_tab:
     st.header("Theme Tabulation")
+    st.markdown("Dive into the broad topics our AI engine has pulled from open-ended comments—everything from workplace culture to wellbeing to operational bottlenecks. Note that each comment can belong to more than one theme.")
     grp_dim = st.selectbox("Staff group dimension", ["All"] + demographic_cols, key='theme_dim')
     if grp_dim == "All":
         filtered = df.copy()
@@ -150,6 +152,7 @@ with themes_tab:
 # --- Quotation Bank Tab ---
 with quotes_tab:
     st.header("Quotation Bank")
+    st.markdown("Zero in on the most telling comments to uncover actionable insights within each topic. Filter by demographic group, theme, and tag (e.g., suggestions or urgent issues) to surface real staff voices that can drive targeted improvements in policy, process, and people strategy.")
     q_dim = st.selectbox("Staff group dimension", ["All"] + demographic_cols, key='quote_dim')
     if q_dim == "All":
         q_filtered = df.copy()
@@ -166,16 +169,10 @@ with quotes_tab:
     if sel_theme != "All":
         q_filtered = q_filtered[q_filtered[sel_theme].astype(str).str.lower().isin(['yes','true','1'])]
 
-    sel_tags = st.multiselect("Tags", options=["All"] + tags, default=["All"], key='quote_tags')
-    if "All" in sel_tags and len(sel_tags) > 1:
-        sel_tags = [v for v in sel_tags if v != "All"]
-    if not sel_tags:
-        sel_tags = ["All"]
-    if "All" not in sel_tags:
-        tag_mask = pd.Series(False, index=q_filtered.index)
-        for tag in sel_tags:
-            tag_mask |= q_filtered[tag].astype(str).str.lower().isin(['yes','true','1'])
-        q_filtered = q_filtered[tag_mask]
+    # Single-select for Tag
+    sel_tag = st.selectbox("Tag", options=["All"] + tags, index=0, key='quote_tag')
+    if sel_tag != "All":
+        q_filtered = q_filtered[q_filtered[sel_tag].astype(str).str.lower().isin(['yes','true','1'])]
 
     # Response counts
     count_filtered = len(q_filtered)
@@ -193,7 +190,7 @@ with quotes_tab:
     if q_dim != "All": cols.append(q_dim)
     cols.append('Comment')
     if sel_theme != "All": cols.append(sel_theme)
-    if "All" not in sel_tags: cols += sel_tags
+    if sel_tag != "All": cols.append(sel_tag)
     st.dataframe(q_filtered[cols])
 
     # Context viewer
