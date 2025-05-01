@@ -106,7 +106,7 @@ with overview_tab:
         y=alt.Y('Count:Q', title='Count'),
         tooltip=[alt.Tooltip('Percent:Q', format='.1%', title='Percentage')]
     )
-    st.altair_chart(chart, use_container_width=True)
+    st.altair_chart(chart, use_container_width=True) 
 
     # Table mirroring chart
     display_df = counts_df.copy()
@@ -204,3 +204,5 @@ with quotes_tab:
             context_cols = demographic_cols + theme_cols + tags + ['Comment']
             st.write("**Context for selected response:**")
             st.dataframe(q_filtered.loc[[sel_idx], context_cols])
+
+#########
