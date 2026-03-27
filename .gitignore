@@ -1,0 +1,7 @@
+.venv
+.devcontainer
+
+__pycache__/
+*.py[cod]
+
+db.sqlite3
