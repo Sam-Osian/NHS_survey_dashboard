@@ -1,0 +1,88 @@
+{
+  "themes": [
+    {
+      "name": "Staffing Levels and Workload",
+      "description": "Comments related to the sufficiency of staffing, workload demands, overtime, coverage, burnout, and resource allocation to support effective patient care and manageable staff duties."
+    },
+    {
+      "name": "Leadership and Management Practices",
+      "description": "Feedback about the behaviours, visibility, competence, and decision-making of all levels of management, including supportiveness, approachability, experience, and the ability to address or escalate issues."
+    },
+    {
+      "name": "Career Development and Progression",
+      "description": "Recurring points on the availability, fairness, transparency, and accessibility of career advancement opportunities, training, support for further education or qualifications, and discussion of banding structures."
+    },
+    {
+      "name": "Pay and Financial Reward",
+      "description": "Perspectives on pay, equity of pay across roles and bands, adequacy of salaries relative to role complexity and market, cost of living, and related benefits/rewards."
+    },
+    {
+      "name": "Flexible, Hybrid and Remote Working",
+      "description": "Observations on the availability, fairness, consistency, and management of flexible, hybrid, remote, and family-friendly working arrangements, including issues with policies, implementation, and perceived inequity."
+    },
+    {
+      "name": "Communication and Engagement",
+      "description": "Staff experiences with internal communication, information-sharing, involvement in decision-making, response to feedback, transparency, and the flow of information throughout the organisation."
+    },
+    {
+      "name": "Organisational Change and Restructuring",
+      "description": "Responses focused on experiences of mergers, restructures, changes to roles, teams, processes, or job security, including the impact on morale and clarity."
+    },
+    {
+      "name": "Organisational Culture and Values",
+      "description": "Impressions of the prevailing culture, including inclusivity, openness, respect, civility, trust values, 'tick box' mentality, perceived tokenism or disconnect between stated and lived values, and approaches to innovation."
+    },
+    {
+      "name": "Bullying, Discrimination, and Equity",
+      "description": "Comments that raise concerns around bullying, harassment, favouritism, nepotism, lack of recognition, discrimination (including on the basis of race, disability, gender, or other protected characteristics), and fairness."
+    },
+    {
+      "name": "Support for Health and Wellbeing",
+      "description": "Accounts regarding the organisation’s support (or lack thereof) for staff health and wellbeing, including mental health, disability, menopause, occupational health, return-to-work, and general wellbeing initiatives."
+    },
+    {
+      "name": "Policies, Procedures and Bureaucracy",
+      "description": "Insights into the volume, clarity, and enforcement of policies and procedures (e.g. sickness, absence, performance, supervision, mandatory training, reporting systems), and their real or perceived impact on everyday work."
+    },
+    {
+      "name": "Work Environment and Facilities",
+      "description": "Reflections on the physical and technological environment, such as office space, hot-desking, equipment, buildings, room availability, IT systems, parking, and other site-level or infrastructure issues."
+    },
+    {
+      "name": "Team Dynamics and Peer Support",
+      "description": "Experiences relating to team atmosphere, morale, collaboration, informal support, supervision, workload distribution within teams, and relationships with immediate colleagues."
+    },
+    {
+      "name": "Recognition and Feedback",
+      "description": "Focus on the presence, type, and adequacy of recognition, appreciation, and feedback mechanisms for staff contributions, efforts, or long service."
+    },
+    {
+      "name": "Patient Care and Service Quality",
+      "description": "Staff perspectives on patient safety, standards of care, service models, patient complexity, resource constraints affecting care, and alignment of work or targets with service user needs."
+    },
+    {
+      "name": "Recruitment, Onboarding and Retention",
+      "description": "Comments about the recruitment process, speed and quality of onboarding, staff retention, turnover, and the factors influencing decisions to join, remain, or leave the organisation."
+    },
+    {
+      "name": "Sickness, Absence, and Attendance Management",
+      "description": "Discussion of sickness and attendance policies, including perceived leniency, strictness, process, impact on morale, and the handling of short and long-term absence."
+    },
+    {
+      "name": "Equality, Diversity and Inclusion",
+      "description": "Remarks about the organisation’s approach to EDI, including practices, opportunities, diversity in leadership, support for neurodiverse or disabled staff, and the experience of international recruits."
+    },
+    {
+      "name": "Administrative and Non-Clinical Roles",
+      "description": "Focus on experiences, value, recognition, career pathways, pay, and support for administrative and support staff relative to clinical roles."
+    },
+    {
+      "name": "Systems and Digital Transformation",
+      "description": "Views on the implementation, adequacy, usability, and integration of digital systems, reporting tools, IT support, and the effects on workflow and staff experience."
+    },
+    {
+      "name": "Trust Size and Organisational Structure",
+      "description": "Reflections on the effects of organisational scale, layers of management, centralisation, local autonomy, and the impact on communication, responsiveness, and identity."
+    }
+  ]
+}

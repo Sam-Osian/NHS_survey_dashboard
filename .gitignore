@@ -5,3 +5,6 @@ __pycache__/
 *.py[cod]
 
 db.sqlite3
+api.env
+
+api.env

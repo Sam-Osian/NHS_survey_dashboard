@@ -1,0 +1,10 @@
+# Hide OpenAI API
+api.env
+
+# Python cache
+__pycache__/
+*.py[cod]
+
+# Jupyter checkpoints and lock artifacts
+.ipynb_checkpoints/
+.~lock.*
