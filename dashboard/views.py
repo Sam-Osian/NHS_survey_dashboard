@@ -146,18 +146,21 @@ def home(request):
         "overview_selected_vals": ["All"],
         "overview_count_filtered": 0,
         "overview_rows": [],
+        "overview_chart_data": [],
         "theme_dim": "All",
         "theme_options": [],
         "theme_selected_vals": ["All"],
         "theme_tag": "All",
         "theme_count_filtered": 0,
         "theme_rows": [],
+        "theme_chart_data": [],
         "quote_dim": "All",
         "quote_options": [],
         "quote_selected_vals": ["All"],
         "quote_theme": "All",
         "quote_tag": "All",
         "quote_count_filtered": 0,
+        "quote_tag_chart_data": [],
         "quote_table_headers": [],
         "quote_table_rows": [],
         "quote_table_truncated": False,
@@ -224,6 +227,7 @@ def home(request):
 
     max_count = int(overview_counts.max()) if not overview_counts.empty else 0
     overview_rows = []
+    overview_chart_data = []
     for label, count in overview_counts.items():
         count_int = int(count)
         percent = (count_int / total_responses) if total_responses else 0
@@ -236,6 +240,13 @@ def home(request):
                 "bar_width": f"{bar_width:.2f}",
             }
         )
+        overview_chart_data.append(
+            {
+                "name": label,
+                "value": count_int,
+                "percent": round(percent * 100, 2),
+            }
+        )
 
     context.update(
         {
@@ -244,6 +255,7 @@ def home(request):
             "overview_selected_vals": overview_selected_vals,
             "overview_count_filtered": overview_count_filtered,
             "overview_rows": overview_rows,
+            "overview_chart_data": overview_chart_data,
         }
     )
 
@@ -294,6 +306,10 @@ def home(request):
         )
 
     theme_rows.sort(key=lambda item: item["count"], reverse=True)
+    theme_chart_data = [
+        {"name": row["theme"], "value": row["count"]}
+        for row in theme_rows[:15]
+    ]
 
     context.update(
         {
@@ -303,6 +319,7 @@ def home(request):
             "theme_tag": theme_tag,
             "theme_count_filtered": theme_count_filtered,
             "theme_rows": theme_rows,
+            "theme_chart_data": theme_chart_data,
         }
     )
 
@@ -342,6 +359,13 @@ def home(request):
         filtered_quotes = filtered_quotes[_truthy_mask(filtered_quotes[quote_tag])]
 
     quote_count_filtered = len(filtered_quotes)
+    quote_tag_chart_data = []
+    for tag in TAGS:
+        if tag in filtered_quotes.columns and quote_count_filtered > 0:
+            tag_count = int(_truthy_mask(filtered_quotes[tag]).sum())
+        else:
+            tag_count = 0
+        quote_tag_chart_data.append({"name": tag, "value": tag_count})
 
     quote_display_cols = []
     if quote_dim != "All" and quote_dim in filtered_quotes.columns:
@@ -412,6 +436,7 @@ def home(request):
             "quote_theme": quote_theme,
             "quote_tag": quote_tag,
             "quote_count_filtered": quote_count_filtered,
+            "quote_tag_chart_data": quote_tag_chart_data,
             "quote_table_headers": quote_table_headers,
             "quote_table_rows": quote_table_rows,
             "quote_table_truncated": quote_table_truncated,
