@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="MerseyVoice favicon">
+  <defs>
+    <linearGradient id="mvFavBg" x1="8" y1="8" x2="56" y2="56" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#2f6bff"/>
+      <stop offset="1" stop-color="#12b6a9"/>
+    </linearGradient>
+  </defs>
+  <rect x="2" y="2" width="60" height="60" rx="14" fill="url(#mvFavBg)"/>
+  <path d="M14 42V22h5.2l7.8 12.2L34.8 22H40v20h-4.8V30.8L27 43.2 18.8 30.8V42Z" fill="#fff"/>
+  <path d="M12 50c7-3.2 12.4-4.8 17.8-4.8S40 46.8 52 50" fill="none" stroke="#d9f6ff" stroke-width="3.2" stroke-linecap="round"/>
+</svg>

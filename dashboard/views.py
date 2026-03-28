@@ -137,6 +137,9 @@ def home(request):
     all_columns = df.columns.tolist()
     theme_cols = [column for column in all_columns if column not in DEMOGRAPHIC_COLS + ["Comment"] + TAGS]
     context["theme_cols"] = theme_cols
+    context["active_theme_count"] = sum(
+        1 for col in theme_cols if int(_truthy_mask(df[col]).sum()) > 0
+    )
 
     # Overview tab state
     overview_group = request.GET.get("overview_group", DEMOGRAPHIC_COLS[0])

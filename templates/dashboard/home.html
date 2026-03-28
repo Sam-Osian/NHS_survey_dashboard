@@ -1,9 +1,11 @@
 <!doctype html>
 <html lang="en">
 <head>
+  {% load static %}
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>NHS Staff Survey Dashboard</title>
+  <title>MerseyVoice | Staff Survey Dashboard</title>
+  <link rel="icon" type="image/svg+xml" href="{% static 'branding/merseyvoice-favicon.svg' %}">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -90,10 +92,12 @@
 
     .logo-mark {
       width: 34px; height: 34px; border-radius: 10px;
-      background: var(--accent); display: grid; place-items: center;
-      color: #fff; font-size: 16px; flex-shrink: 0;
+      display: grid; place-items: center;
+      flex-shrink: 0;
       box-shadow: 0 4px 12px rgba(59,91,219,.45);
+      overflow: hidden;
     }
+    .logo-mark img { width: 100%; height: 100%; display: block; }
 
     .logo-text { font-weight: 800; font-size: 1.25rem; letter-spacing: -0.03em; color: #fff; }
 
@@ -528,6 +532,17 @@
     .pin-note:focus { outline: none; border-color: var(--teal); box-shadow: 0 0 0 3px rgba(13,148,136,.1); }
     .pin-note::placeholder { color: var(--ink-3); }
 
+    /* ── Export PDF button ──────────────────────────── */
+    .btn-export-pdf {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 6px 12px; border-radius: var(--r-sm);
+      border: 1px solid rgba(59,91,219,.25); background: var(--accent-ll);
+      color: var(--accent); font: inherit; font-size: 12px; font-weight: 600;
+      cursor: pointer; transition: background var(--transition), border-color var(--transition);
+    }
+    .btn-export-pdf:hover { background: var(--accent-l); border-color: rgba(59,91,219,.4); }
+    .btn-export-pdf:disabled { opacity: .5; cursor: not-allowed; }
+
     /* ── Remove all pins button ─────────────────────── */
     .btn-remove-all {
       display: inline-flex; align-items: center; gap: 6px;
@@ -581,6 +596,52 @@
       transition: background var(--transition);
     }
     .modal-actions .btn-proceed:hover { background: #c01940; }
+
+    /* ── Keyword search input ───────────────────────── */
+    .keyword-field { display: flex; flex-direction: column; gap: 4px; flex: 1; min-width: 200px; max-width: 360px; }
+    .keyword-field label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .05em; color: var(--teal-d); }
+    .keyword-wrap {
+      display: flex; align-items: center; gap: 6px;
+      border: 1px solid var(--border); border-radius: var(--r-sm);
+      background: #fff; padding: 4px 8px; cursor: text; min-height: 36px;
+      transition: border-color var(--transition), box-shadow var(--transition);
+    }
+    .keyword-wrap:focus-within { border-color: var(--teal); box-shadow: 0 0 0 3px rgba(13,148,136,.1); }
+    .keyword-chips-area {
+      display: flex; flex-wrap: wrap; align-items: center; gap: 4px; flex: 1;
+    }
+    .keyword-chip {
+      display: inline-flex; align-items: center; gap: 4px;
+      padding: 2px 6px 2px 9px; border-radius: 99px;
+      background: var(--teal-ll); border: 1px solid rgba(13,148,136,.25);
+      color: var(--teal-d); font-size: 12px; font-weight: 600;
+      animation: fadeUp .12s cubic-bezier(.4,0,.2,1) both; white-space: nowrap;
+    }
+    .keyword-chip-x {
+      width: 15px; height: 15px; border-radius: 99px; border: none;
+      background: rgba(13,148,136,.15); color: var(--teal-d); cursor: pointer;
+      font-size: 11px; line-height: 1; display: inline-flex;
+      align-items: center; justify-content: center; padding: 0;
+      transition: background var(--transition), color var(--transition);
+    }
+    .keyword-chip-x:hover { background: var(--rose-l); color: var(--rose); }
+    .keyword-input {
+      border: none; outline: none; font: inherit; font-size: 13px;
+      color: var(--ink); background: transparent; min-width: 80px; flex: 1;
+    }
+    .keyword-input::placeholder { color: var(--ink-3); }
+    .keyword-reset-btn {
+      flex-shrink: 0; width: 20px; height: 20px; border-radius: 99px;
+      border: 1px solid var(--border); background: var(--surface-2);
+      color: var(--ink-3); cursor: pointer; font-size: 11px; font-weight: 700;
+      display: inline-flex; align-items: center; justify-content: center;
+      transition: background var(--transition), color var(--transition);
+      line-height: 1;
+    }
+    .keyword-reset-btn:hover { background: var(--rose-l); color: var(--rose); border-color: rgba(225,29,72,.2); }
+
+    /* ── Keyword highlight in quote text ────────────── */
+    .kw-hl { font-weight: 700; color: var(--ink); background: rgba(13,148,136,.12); border-radius: 2px; padding: 0 1px; }
 
     /* ── Note preview text ─────────────────────────── */
     .note-preview {
@@ -637,6 +698,87 @@
     .quote-card, .pinned-card { cursor: default; }
     .quote-card .quote-text, .pinned-card .pinned-card-text { cursor: pointer; }
 
+    /* ── Overview / About page ─────────────────────── */
+    .ov-hero {
+      background: linear-gradient(135deg, var(--brand) 0%, #253564 100%);
+      border-radius: var(--r-lg); padding: 44px 48px; color: #fff;
+      position: relative; overflow: hidden;
+    }
+    .ov-hero::before {
+      content: ''; position: absolute; inset: 0;
+      background: radial-gradient(ellipse 60% 80% at 100% 0%, rgba(59,91,219,.35) 0%, transparent 70%);
+      pointer-events: none;
+    }
+    .ov-hero-eyebrow {
+      display: inline-flex; align-items: center; gap: 6px;
+      font-size: 11px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase;
+      color: rgba(255,255,255,.5); margin-bottom: 14px;
+    }
+    .ov-hero h2 { font-size: clamp(1.6rem, 2.8vw, 2.4rem); font-weight: 800; letter-spacing: -.04em; line-height: 1.15; margin-bottom: 14px; }
+    .ov-hero p  { font-size: 15px; color: rgba(255,255,255,.7); max-width: 68ch; line-height: 1.7; }
+    .ov-hero-stats {
+      display: flex; gap: 32px; margin-top: 28px; flex-wrap: wrap;
+    }
+    .ov-hero-stat { display: flex; flex-direction: column; gap: 3px; }
+    .ov-hero-stat-val { font-size: 2rem; font-weight: 800; letter-spacing: -.04em; line-height: 1; }
+    .ov-hero-stat-lbl { font-size: 11.5px; color: rgba(255,255,255,.5); font-weight: 500; text-transform: uppercase; letter-spacing: .06em; }
+
+    .ov-cards { display: grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap: 16px; }
+    @media (max-width: 1100px) { .ov-cards { grid-template-columns: 1fr; } }
+
+    .ov-card {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: var(--r-lg); padding: 28px 28px 24px;
+      box-shadow: var(--shadow-card); display: flex; flex-direction: column; gap: 16px;
+      transition: box-shadow var(--transition), transform var(--transition);
+    }
+    .ov-card:hover { box-shadow: var(--shadow-lift); transform: translateY(-2px); }
+    .ov-card-icon {
+      width: 44px; height: 44px; border-radius: var(--r-md);
+      display: grid; place-items: center; font-size: 20px; flex-shrink: 0;
+    }
+    .ov-card-blue  { background: var(--accent-ll); color: var(--accent); }
+    .ov-card-teal  { background: var(--teal-ll);   color: var(--teal); }
+    .ov-card-amber { background: var(--amber-l);   color: var(--amber); }
+    .ov-card h3 { font-size: 1.05rem; font-weight: 700; letter-spacing: -.02em; }
+    .ov-card p  { font-size: 13.5px; color: var(--ink-3); line-height: 1.65; flex: 1; }
+    .ov-card-foot { margin-top: auto; }
+    .ov-card-foot button {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 8px 16px; border-radius: var(--r-sm);
+      border: 1px solid var(--border); background: var(--surface-2);
+      font: inherit; font-size: 13px; font-weight: 600; color: var(--ink-2);
+      cursor: pointer; transition: background var(--transition), color var(--transition), border-color var(--transition);
+    }
+    .ov-card-foot button:hover { background: var(--accent-ll); color: var(--accent); border-color: rgba(59,91,219,.25); }
+    .ov-card-foot button iconify-icon { font-size: 14px; }
+
+    .ov-features {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: var(--r-lg); padding: 28px 32px; box-shadow: var(--shadow-card);
+    }
+    .ov-features h3 { font-size: .9rem; font-weight: 700; letter-spacing: -.01em; margin-bottom: 14px; color: var(--ink-2); text-transform: uppercase; font-size: 11px; letter-spacing: .08em; }
+    .ov-feature-list { display: flex; flex-direction: column; gap: 10px; }
+    .ov-feature-item {
+      display: flex; align-items: flex-start; gap: 10px;
+      font-size: 13.5px; color: var(--ink-2); line-height: 1.55;
+    }
+    .ov-feature-item iconify-icon { font-size: 15px; color: var(--teal); flex-shrink: 0; margin-top: 1px; }
+
+    .ov-support {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: var(--r-lg); padding: 24px 28px; box-shadow: var(--shadow-card);
+      display: flex; align-items: flex-start; gap: 16px;
+    }
+    .ov-support-icon {
+      width: 40px; height: 40px; background: var(--accent-ll); color: var(--accent);
+      border-radius: var(--r-md); display: grid; place-items: center; font-size: 18px; flex-shrink: 0;
+    }
+    .ov-support h3 { font-size: .95rem; font-weight: 700; margin-bottom: 5px; }
+    .ov-support p  { font-size: 13px; color: var(--ink-3); line-height: 1.6; }
+    .ov-support a  { color: var(--accent); font-weight: 600; text-decoration: none; }
+    .ov-support a:hover { text-decoration: underline; }
+
     /* ── Responsive ────────────────────────────────── */
     @media (max-width: 1000px) {
       .center { padding: 24px 20px; }
@@ -660,14 +802,18 @@
   <!-- ════ LEFT SIDEBAR ════ -->
   <aside class="left">
     <div class="logo">
-      <div class="logo-mark"><iconify-icon icon="hugeicons:chart-bar-line"></iconify-icon></div>
-      <span class="logo-text">mct</span>
+      <div class="logo-mark"><img src="{% static 'branding/merseyvoice-logo.svg' %}" alt="MerseyVoice logo"></div>
+      <span class="logo-text">MerseyVoice</span>
     </div>
 
     <div class="nav-label">Navigation</div>
 
     <nav aria-label="Main tabs">
-      <button type="button" class="nav-item active" data-tab="response-rate">
+      <button type="button" class="nav-item active" data-tab="about">
+        <iconify-icon icon="hugeicons:home-01"></iconify-icon>
+        <span>Overview</span>
+      </button>
+      <button type="button" class="nav-item" data-tab="response-rate">
         <iconify-icon icon="hugeicons:dashboard-square-01"></iconify-icon>
         <span>Response Rate</span>
       </button>
@@ -682,10 +828,6 @@
       </button>
     </nav>
 
-    <div class="left-footer">
-      <strong>2024 Dataset</strong>
-      <p><code>{{ dataset_filename }}</code></p>
-    </div>
   </aside>
 
   <!-- ════ CENTER ════ -->
@@ -693,13 +835,11 @@
 
     <header class="topbar reveal">
       <div class="topbar-title">
-        <h1>Hello, Merseycare</h1>
-        <p>Explore 2024 staff survey open-text insights — from broad participation patterns down to individual voices.</p>
+        <h1>Hello, MerseyVoice</h1>
+        <p>Explore staff survey open-text insights — from broad participation patterns down to individual voices.</p>
       </div>
       <div class="topbar-meta">
         <span class="total-label">{{ total_responses }} responses</span>
-        <span class="badge"><iconify-icon icon="hugeicons:calendar-03"></iconify-icon> 2024 dataset</span>
-        <span class="badge"><iconify-icon icon="hugeicons:file-02"></iconify-icon> {{ dataset_filename }}</span>
       </div>
     </header>
 
@@ -709,8 +849,91 @@
       <div class="card reveal"><div class="card-body"><span class="notice">Missing columns: {{ missing_cols|join:", " }}</span></div></div>
     {% else %}
 
+    <!-- ══ ABOUT / OVERVIEW TAB ══ -->
+    <section class="tab-panel active" data-panel="about">
+
+      <!-- Hero -->
+      <div class="ov-hero reveal">
+        <div class="ov-hero-eyebrow">
+          <iconify-icon icon="hugeicons:chart-bar-line"></iconify-icon>
+          NHS Staff Survey &mdash; MerseyVoice
+        </div>
+        <h2>Understanding our people<br>through their own words</h2>
+        <p>Explore open-text responses from the NHS Staff Survey — from broad participation patterns down to individual voices.</p>
+        <div class="ov-hero-stats">
+          <div class="ov-hero-stat">
+            <span class="ov-hero-stat-val" data-counter>{{ total_responses }}</span>
+            <span class="ov-hero-stat-lbl">Total responses</span>
+          </div>
+          <div class="ov-hero-stat">
+            <span class="ov-hero-stat-val" data-counter>{{ active_theme_count }}</span>
+            <span class="ov-hero-stat-lbl">Themes identified</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Feature cards -->
+      <div class="ov-cards">
+
+        <div class="ov-card reveal">
+          <div class="ov-card-icon ov-card-blue">
+            <iconify-icon icon="hugeicons:dashboard-square-01"></iconify-icon>
+          </div>
+          <h3>Response Rate</h3>
+          <p>See how participation breaks down by occupation, pay band, age, service line, and more.</p>
+          <div class="ov-card-foot">
+            <button type="button" data-goto="response-rate">
+              <iconify-icon icon="hugeicons:arrow-right-01"></iconify-icon>
+              Go to Response Rate
+            </button>
+          </div>
+        </div>
+
+        <div class="ov-card reveal">
+          <div class="ov-card-icon ov-card-teal">
+            <iconify-icon icon="hugeicons:analytics-02"></iconify-icon>
+          </div>
+          <h3>Themes &amp; Quotes</h3>
+          <p>Browse comments by theme, demographic group, sentiment tag, or custom search.</p>
+          <div class="ov-card-foot">
+            <button type="button" data-goto="themes">
+              <iconify-icon icon="hugeicons:arrow-right-01"></iconify-icon>
+              Go to Themes &amp; Quotes
+            </button>
+          </div>
+        </div>
+
+        <div class="ov-card reveal">
+          <div class="ov-card-icon ov-card-amber">
+            <iconify-icon icon="hugeicons:bookmark-02"></iconify-icon>
+          </div>
+          <h3>Pinned Quotes</h3>
+          <p>Pin staff comments and annotate them with your own notes. Export your collection as a formatted PDF report in one click.</p>
+          <div class="ov-card-foot">
+            <button type="button" data-goto="pinned">
+              <iconify-icon icon="hugeicons:arrow-right-01"></iconify-icon>
+              Go to Pinned Quotes
+            </button>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Technical support -->
+      <div class="ov-support reveal">
+        <div class="ov-support-icon">
+          <iconify-icon icon="hugeicons:customer-service-01"></iconify-icon>
+        </div>
+        <div>
+          <h3>Technical support</h3>
+          <p>For questions about the dashboard, data, or functionality, please contact <strong>Sam Osian</strong> at <a href="mailto:sam.osian@oreliandata.co.uk">sam.osian@oreliandata.co.uk</a>.</p>
+        </div>
+      </div>
+
+    </section>
+
     <!-- ══ RESPONSE RATE TAB ══ -->
-    <section class="tab-panel active" data-panel="response-rate">
+    <section class="tab-panel" data-panel="response-rate">
 
       <div class="rr-total reveal">
         <div class="rr-total-icon"><iconify-icon icon="hugeicons:user-group"></iconify-icon></div>
@@ -840,6 +1063,15 @@
                   <option value="{{ tag }}">{{ tag|capfirst }}</option>
                 {% endfor %}
               </select>
+            </div>
+            <div class="keyword-field">
+              <label>Search by keyword(s)</label>
+              <div class="keyword-wrap" id="keyword-wrap">
+                <div class="keyword-chips-area" id="keyword-chips-area">
+                  <input class="keyword-input" id="keyword-input" placeholder="Type, press Space to add…" autocomplete="off" spellcheck="false">
+                </div>
+                <button class="keyword-reset-btn" id="keyword-reset-btn" title="Clear search" style="display:none;">✕</button>
+              </div>
             </div>
             <button class="hide-tags-btn" id="hide-tags-btn" type="button">
               <iconify-icon icon="hugeicons:tag-01"></iconify-icon>
@@ -1046,6 +1278,13 @@
   /* ─── Event delegation for quote interactions ──── */
   // Handles pin clicks and expand/collapse — no inline onclick needed
   document.addEventListener('click', e => {
+    // Overview "Go to" card buttons
+    const gotoBtn = e.target.closest('[data-goto]');
+    if (gotoBtn) {
+      document.querySelector(`[data-tab="${gotoBtn.dataset.goto}"]`)?.click();
+      return;
+    }
+
     // Pin button
     const pinBtn = e.target.closest('.pin-btn');
     if (pinBtn) {
@@ -1076,6 +1315,25 @@
     // Show-more button
     if (e.target.closest('#show-more-btn')) {
       renderQuotesPage(true);
+      return;
+    }
+
+    // Keyword chip remove
+    const chipX = e.target.closest('.keyword-chip-x');
+    if (chipX) {
+      activeKeywords.splice(parseInt(chipX.dataset.idx, 10), 1);
+      renderKeywordChips();
+      applyKeywordFilter();
+      return;
+    }
+
+    // Keyword reset
+    if (e.target.closest('#keyword-reset-btn')) {
+      activeKeywords = [];
+      const input = $id('keyword-input');
+      if (input) input.value = '';
+      renderKeywordChips();
+      applyKeywordFilter();
       return;
     }
 
@@ -1121,6 +1379,12 @@
       return;
     }
 
+    // Export PDF
+    if (e.target.closest('#export-pdf-btn')) {
+      exportPinnedPDF();
+      return;
+    }
+
     // Remove all pins button (in Pinned tab)
     if (e.target.closest('#remove-all-pins-btn')) {
       openRemoveAllModal();
@@ -1147,11 +1411,11 @@
       if (!textDiv) return;
       const expanded = textDiv.dataset.expanded === '1';
       if (expanded) {
-        textDiv.innerHTML = esc(textDiv.dataset.short) +
+        textDiv.innerHTML = applyHighlight(textDiv.dataset.short) +
           '<button class="quote-expand-btn">Show full quote</button>';
         textDiv.dataset.expanded = '0';
       } else {
-        textDiv.innerHTML = esc(textDiv.dataset.full) +
+        textDiv.innerHTML = applyHighlight(textDiv.dataset.full) +
           '<button class="quote-expand-btn">Show less</button>';
         textDiv.dataset.expanded = '1';
       }
@@ -1213,7 +1477,6 @@
     const meta = themeTag || dimBadge || tagBadges
       ? `<div class="quote-meta">${themeTag}${dimBadge}${tagBadges}</div>` : '';
 
-    // quote-text uses data attrs so the expand handler can toggle without JSON in onclick
     return `
       <div class="quote-card" style="animation-delay:${delay}ms" data-row-id="${rowId}">
         <button class="pin-btn${pinned ? ' pinned' : ''}" title="${pinned ? 'Unpin quote' : 'Pin quote'}">
@@ -1222,9 +1485,116 @@
         <div class="quote-text"
              data-full="${esc(q.comment)}"
              data-short="${esc(shortText)}"
-             data-expanded="0">${esc(shortText)}${truncated ? '<button class="quote-expand-btn">Show full quote</button>' : ''}</div>
+             data-expanded="0">${applyHighlight(shortText)}${truncated ? '<button class="quote-expand-btn">Show full quote</button>' : ''}</div>
         ${meta}
       </div>`;
+  }
+
+  /* ─── Keyword search state & helpers ──────────── */
+  let activeKeywords  = [];
+  let rawQuotes       = [];   // full API result before keyword filter
+  let quoteTotalCount = 0;    // API total count (before keyword filter)
+  let quoteTruncated  = false;
+
+  // Lightweight English stemmer (strips common inflectional suffixes)
+  function stem(w) {
+    w = w.toLowerCase().replace(/[^a-z]/g, '');
+    if (w.length < 3) return w;
+    const rules = [
+      [/ingly$/, ''], [/edly$/, ''], [/ings?$/, ''], [/nesses$/, ''],
+      [/ness$/, ''], [/ments$/, ''], [/ment$/, ''], [/tions$/, ''],
+      [/tion$/, ''], [/sions$/, ''], [/sion$/, ''], [/ities$/, ''],
+      [/ity$/, ''], [/ied$/, 'y'], [/ies$/, 'y'], [/ives$/, ''],
+      [/ive$/, ''], [/ous$/, ''], [/ful$/, ''], [/ers$/, ''],
+      [/er$/, ''], [/ly$/, ''], [/al$/, ''], [/est$/, ''],
+      [/ing$/, ''], [/ed$/, ''], [/s$/, ''],
+    ];
+    for (const [re, rep] of rules) {
+      const result = w.replace(re, rep);
+      if (result.length >= 3 && result !== w) return result;
+    }
+    return w;
+  }
+
+  function escRe(s) { return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); }
+
+  // Returns HTML string with keyword stems highlighted
+  function applyHighlight(text) {
+    const escaped = esc(text);
+    if (!activeKeywords.length) return escaped;
+    const stems = [...new Set(activeKeywords.map(stem))].filter(s => s.length >= 3);
+    if (!stems.length) return escaped;
+    const pattern = stems.map(s => escRe(s) + '[a-z\']*').join('|');
+    return escaped.replace(
+      new RegExp(`\\b(${pattern})`, 'gi'),
+      '<span class="kw-hl">$1</span>'
+    );
+  }
+
+  // Returns true if text matches any active keyword (stem-aware)
+  function matchesKeywords(text) {
+    if (!activeKeywords.length) return true;
+    const wordStems = text.toLowerCase().split(/\W+/).filter(Boolean).map(stem);
+    return activeKeywords.some(kw => {
+      const ks = stem(kw);
+      return wordStems.some(ws => ws === ks || ws.startsWith(ks) || (ks.length >= 4 && ws.includes(ks)));
+    });
+  }
+
+  function filterByKeywords(quotes) {
+    return activeKeywords.length ? quotes.filter(q => matchesKeywords(q.comment)) : quotes;
+  }
+
+  function applyKeywordFilter() {
+    allQuotes  = filterByKeywords(rawQuotes);
+    shownCount = 0;
+    const sub  = $id('theme-quotes-sub');
+    if (sub) {
+      const note = quoteTruncated ? ' (sample of 200)' : '';
+      sub.textContent = activeKeywords.length
+        ? `${allQuotes.length} of ${quoteTotalCount.toLocaleString()} match${note}`
+        : `${quoteTotalCount.toLocaleString()} quote${quoteTotalCount !== 1 ? 's' : ''}${note}`;
+    }
+    renderQuotesPage(false);
+  }
+
+  function renderKeywordChips() {
+    const area     = $id('keyword-chips-area');
+    const input    = $id('keyword-input');
+    const resetBtn = $id('keyword-reset-btn');
+    if (!area || !input) return;
+    area.querySelectorAll('.keyword-chip').forEach(c => c.remove());
+    activeKeywords.forEach((kw, i) => {
+      const chip = document.createElement('span');
+      chip.className = 'keyword-chip';
+      chip.innerHTML = `${esc(kw)}<button class="keyword-chip-x" data-idx="${i}" title="Remove">✕</button>`;
+      area.insertBefore(chip, input);
+    });
+    if (resetBtn) resetBtn.style.display = activeKeywords.length ? 'inline-flex' : 'none';
+    input.placeholder = activeKeywords.length ? '' : 'Type, press Space to add…';
+  }
+
+  function setupKeywordSearch() {
+    const input = $id('keyword-input');
+    if (!input) return;
+    // Focus the input when clicking anywhere in the wrap
+    $id('keyword-wrap')?.addEventListener('click', () => input.focus());
+    input.addEventListener('keydown', e => {
+      if (e.key === ' ' || e.key === 'Enter') {
+        e.preventDefault();
+        const word = input.value.trim().toLowerCase().replace(/\s+/g, '');
+        if (word && !activeKeywords.includes(word)) {
+          activeKeywords.push(word);
+          renderKeywordChips();
+          applyKeywordFilter();
+        }
+        input.value = '';
+      } else if (e.key === 'Backspace' && input.value === '' && activeKeywords.length) {
+        activeKeywords.pop();
+        renderKeywordChips();
+        applyKeywordFilter();
+      }
+    });
   }
 
   /* ─── Quote pagination state ──────────────────── */
@@ -1397,10 +1767,16 @@
       .then(r => r.json())
       .then(data => {
         if (data.error) { if (body) body.innerHTML = '<div class="quotes-empty">Error loading quotes.</div>'; return; }
-        allQuotes  = data.quotes || [];
-        shownCount = 0;
+        rawQuotes       = data.quotes || [];
+        quoteTotalCount = data.count;
+        quoteTruncated  = data.truncated;
+        allQuotes       = filterByKeywords(rawQuotes);
+        shownCount      = 0;
         const sub = $id('theme-quotes-sub');
-        if (sub) sub.textContent = `${data.count.toLocaleString()} quote${data.count !== 1 ? 's' : ''}${data.truncated ? ' (sample of 200)' : ''}`;
+        const note = data.truncated ? ' (sample of 200)' : '';
+        if (sub) sub.textContent = activeKeywords.length
+          ? `${allQuotes.length} of ${data.count.toLocaleString()} match${note}`
+          : `${data.count.toLocaleString()} quote${data.count !== 1 ? 's' : ''}${note}`;
         renderQuotesPage(false);
       });
   }
@@ -1547,11 +1923,15 @@
           <h2>Pinned Quotes</h2>
           <div class="card-sub">${pins.length} quote${pins.length !== 1 ? 's' : ''} saved</div>
         </div>
-        <div style="display:flex;align-items:center;gap:10px;">
+        <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
           <span class="pill pill-neutral">
             <iconify-icon icon="hugeicons:bookmark-02"></iconify-icon>
             ${pins.length} pinned
           </span>
+          <button class="btn-export-pdf" id="export-pdf-btn">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            Export PDF
+          </button>
           <button class="btn-remove-all" id="remove-all-pins-btn">
             <iconify-icon icon="hugeicons:delete-02"></iconify-icon>
             Remove all
@@ -1559,6 +1939,162 @@
         </div>
       </div>
       <div class="pinned-feed">${cardHTML}</div>`;
+  }
+
+  /* ─── PDF Export ──────────────────────────────── */
+  function exportPinnedPDF() {
+    const btn = $id('export-pdf-btn');
+    if (btn) { btn.disabled = true; btn.textContent = 'Building…'; }
+    const done = () => {
+      if (btn) {
+        btn.disabled = false;
+        btn.innerHTML = `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg> Export PDF`;
+      }
+    };
+    if (window.jspdf) { buildAndOpenPDF(); done(); return; }
+    const s = document.createElement('script');
+    s.src = 'https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js';
+    s.onload  = () => { buildAndOpenPDF(); done(); };
+    s.onerror = () => { alert('Could not load PDF library. Check your internet connection.'); done(); };
+    document.head.appendChild(s);
+  }
+
+  function buildAndOpenPDF() {
+    const { jsPDF } = window.jspdf;
+    const pins  = getPinned();
+    const notes = getNotes();
+    if (!pins.length) return;
+
+    const doc = new jsPDF({ unit: 'mm', format: 'a4' });
+    const ML = 20, MR = 20, MT = 24, MB = 24;
+    const PW = 210, PH = 297, CW = PW - ML - MR;
+    const LS14 = 7.2, LS12 = 6.2, LS10 = 5.2, LS9 = 4.6;
+    let y = MT;
+
+    const newPage = () => { doc.addPage(); y = MT; };
+    const room = (need) => { if (y + need > PH - MB) newPage(); };
+
+    // ── Header ──
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(22);
+    doc.setTextColor(26, 35, 64);
+    doc.text('Pinned Quotes', ML, y); y += 9;
+
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(10);
+    doc.setTextColor(116, 128, 160);
+    const dated = new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' });
+    doc.text(
+      `NHS Staff Survey  ·  MerseyVoice  ·  ${dated}  ·  ${pins.length} quote${pins.length !== 1 ? 's' : ''}`,
+      ML, y
+    ); y += 7;
+    doc.setDrawColor(228, 231, 239);
+    doc.setLineWidth(0.4);
+    doc.line(ML, y, PW - MR, y); y += 8;
+
+    // ── Quotes ──
+    const DEMO_KEYS = ['Occupation group', 'Service line', 'Pay band'];
+
+    pins.forEach((q, idx) => {
+      const note = notes[q.row_id] || '';
+
+      // Pre-split text at the right font sizes
+      doc.setFont('helvetica', 'normal'); doc.setFontSize(12);
+      const commentLines = doc.splitTextToSize(q.comment, CW);
+
+      const metaItems = [];
+      if (q.source_theme && q.source_theme !== 'All') metaItems.push(q.source_theme);
+      if (q.demographics) DEMO_KEYS.forEach(k => { if (q.demographics[k]) metaItems.push(`${k}: ${q.demographics[k]}`); });
+      const tagStr = (q.tags || []).join(', ');
+
+      doc.setFont('helvetica', 'italic'); doc.setFontSize(10);
+      const noteLines = note ? doc.splitTextToSize(note, CW - 6) : [];
+
+      // Estimate block height for page-break check (min 30mm so we don't orphan the label)
+      const blockH = Math.min(
+        LS9 + commentLines.length * LS12 + (metaItems.length ? LS9 : 0) + (tagStr ? LS9 : 0) + (note ? LS9 + noteLines.length * LS10 + 6 : 0) + 8,
+        PH - MT - MB
+      );
+      room(Math.max(blockH, 30));
+
+      // Quote index label
+      doc.setFont('helvetica', 'bold'); doc.setFontSize(8.5);
+      doc.setTextColor(116, 128, 160);
+      doc.text(`QUOTE ${idx + 1} OF ${pins.length}`, ML, y); y += LS9;
+
+      // Comment text
+      doc.setFont('helvetica', 'normal'); doc.setFontSize(12);
+      doc.setTextColor(15, 22, 36);
+      // Render line by line so we can page-break mid-comment
+      commentLines.forEach(line => {
+        room(LS12);
+        doc.text(line, ML, y); y += LS12;
+      });
+      y += 2;
+
+      // Metadata (theme + demographics)
+      if (metaItems.length) {
+        room(LS9);
+        doc.setFont('helvetica', 'normal'); doc.setFontSize(9);
+        doc.setTextColor(116, 128, 160);
+        doc.text(metaItems.join('  ·  '), ML, y); y += LS9;
+      }
+
+      // Tags
+      if (tagStr) {
+        room(LS9);
+        doc.setFont('helvetica', 'normal'); doc.setFontSize(9);
+        doc.setTextColor(180, 83, 9);
+        doc.text(tagStr, ML, y); y += LS9;
+      }
+
+      // Note block
+      if (note) {
+        y += 2;
+        const noteBlockH = LS9 + noteLines.length * LS10 + 2;
+        room(noteBlockH + 4);
+        doc.setDrawColor(13, 148, 136); doc.setLineWidth(0.9);
+        doc.line(ML, y - 1, ML, y + noteBlockH);
+        doc.setLineWidth(0.3);
+
+        doc.setFont('helvetica', 'bold'); doc.setFontSize(8);
+        doc.setTextColor(13, 148, 136);
+        doc.text('NOTE', ML + 4, y);
+        y += 5.5;
+
+        doc.setFont('helvetica', 'italic'); doc.setFontSize(10);
+        doc.setTextColor(61, 71, 96);
+        noteLines.forEach(line => {
+          room(LS10);
+          doc.text(line, ML + 4, y); y += LS10;
+        });
+        y += 2;
+      }
+
+      y += 3;
+
+      // Divider between quotes
+      if (idx < pins.length - 1) {
+        room(8);
+        doc.setDrawColor(228, 231, 239); doc.setLineWidth(0.3);
+        doc.line(ML, y, PW - MR, y); y += 7;
+      }
+    });
+
+    // ── Footers on every page ──
+    const totalPages = doc.getNumberOfPages();
+    for (let p = 1; p <= totalPages; p++) {
+      doc.setPage(p);
+      doc.setFont('helvetica', 'normal'); doc.setFontSize(8.5);
+      doc.setTextColor(180, 180, 180);
+      doc.text(
+        `NHS Staff Survey  ·  MerseyVoice  ·  Page ${p} of ${totalPages}`,
+        PW / 2, PH - 10, { align: 'center' }
+      );
+    }
+
+    const blob = doc.output('blob');
+    window.open(URL.createObjectURL(blob), '_blank');
   }
 
   /* ─── Tab switching ───────────────────────────── */
@@ -1589,8 +2125,8 @@
     }
 
     buttons.forEach(b => b.addEventListener('click', () => activate(b.dataset.tab)));
-    const tabMap = { overview: 'response-rate', quotes: 'themes' };
-    activate(tabMap[INITIAL_TAB] || INITIAL_TAB || 'response-rate');
+    const tabMap = { overview: 'about', quotes: 'themes' };
+    activate(tabMap[INITIAL_TAB] || INITIAL_TAB || 'about');
   }
 
   /* ─── Boot ────────────────────────────────────── */
@@ -1603,6 +2139,7 @@
   setupTagFilter();
   updatePinBadge();
   initHideTags();
+  setupKeywordSearch();
   initTabs();
 
   window.addEventListener('resize', () => Object.values(CHARTS).forEach(c => c?.resize()));
