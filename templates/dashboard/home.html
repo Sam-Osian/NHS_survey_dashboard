@@ -4,1115 +4,1608 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>NHS Staff Survey Dashboard</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/echarts@5.5.1/dist/echarts.min.js"></script>
   <script src="https://code.iconify.design/iconify-icon/2.1.0/iconify-icon.min.js"></script>
   <style>
     :root {
-      --bg-1: #e3e6f5;
-      --bg-2: #f7f8fc;
-      --ink: #1f2331;
-      --muted: #68758f;
-      --line: #dde3f1;
-      --panel: rgba(255, 255, 255, 0.88);
-      --panel-strong: #ffffff;
-      --accent: #1a2044;
-      --accent-soft: #eef2ff;
-      --chip: #edf1f8;
-      --success: #e9f7ef;
-      --warning: #fff8e9;
-      --error: #ffedf1;
-      --shadow: 0 24px 50px rgba(24, 33, 62, 0.12);
-      --radius-lg: 22px;
-      --radius-md: 15px;
-      --radius-sm: 11px;
+      --bg:        #f0f2f7;
+      --surface:   #ffffff;
+      --surface-2: #f7f8fb;
+      --border:    #e4e7ef;
+      --border-2:  #edf0f7;
+      --ink:       #0f1624;
+      --ink-2:     #3d4760;
+      --ink-3:     #7480a0;
+      --brand:     #1a2340;
+      --accent:    #3b5bdb;
+      --accent-l:  #dce5ff;
+      --accent-ll: #eef2ff;
+      --teal:      #0d9488;
+      --teal-d:    #0f766e;
+      --teal-l:    #ccfbf1;
+      --teal-ll:   #f0fdfa;
+      --amber:     #d97706;
+      --amber-l:   #fef3c7;
+      --rose:      #e11d48;
+      --rose-l:    #ffe4e6;
+      --gold:      #b45309;
+      --gold-l:    #fef9c3;
+      --r-xl:  20px;
+      --r-lg:  16px;
+      --r-md:  12px;
+      --r-sm:  8px;
+      --shadow-card: 0 1px 3px rgba(15,22,36,.04), 0 6px 20px rgba(15,22,36,.06);
+      --shadow-lift: 0 2px 6px rgba(15,22,36,.05), 0 12px 32px rgba(15,22,36,.09);
+      --shadow-deep: 0 4px 12px rgba(15,22,36,.08), 0 20px 48px rgba(15,22,36,.12);
+      --transition: 180ms cubic-bezier(.4,0,.2,1);
     }
 
-    * { box-sizing: border-box; }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
     body {
-      margin: 0;
+      font-family: "Inter", system-ui, sans-serif;
+      font-size: 14px;
+      line-height: 1.5;
       color: var(--ink);
-      font-family: "Manrope", "Avenir Next", "Segoe UI", sans-serif;
-      background:
-        radial-gradient(circle at 18% 14%, rgba(125, 141, 255, 0.26), transparent 44%),
-        radial-gradient(circle at 84% 12%, rgba(255, 202, 126, 0.22), transparent 40%),
-        linear-gradient(130deg, var(--bg-1), var(--bg-2));
+      background: var(--bg);
       min-height: 100vh;
-      padding: 1rem;
-      overflow-x: hidden;
+      padding: 12px;
     }
 
-    .ambient {
-      position: fixed;
-      inset: 0;
-      pointer-events: none;
-      z-index: 0;
-    }
-
-    .orb {
-      position: absolute;
-      border-radius: 999px;
-      filter: blur(6px);
-      opacity: 0.6;
-      animation: drift 18s ease-in-out infinite;
-      transform: translate3d(0, 0, 0);
-    }
-
-    .orb.a {
-      width: 300px;
-      height: 300px;
-      left: -70px;
-      top: 40px;
-      background: radial-gradient(circle at 30% 30%, rgba(139, 149, 255, 0.38), rgba(139, 149, 255, 0.02));
-    }
-
-    .orb.b {
-      width: 340px;
-      height: 340px;
-      right: -90px;
-      top: 18%;
-      background: radial-gradient(circle at 45% 35%, rgba(143, 205, 190, 0.35), rgba(143, 205, 190, 0.02));
-      animation-duration: 22s;
-    }
-
-    .orb.c {
-      width: 280px;
-      height: 280px;
-      right: 32%;
-      bottom: -110px;
-      background: radial-gradient(circle at 50% 30%, rgba(255, 202, 131, 0.30), rgba(255, 202, 131, 0.02));
-      animation-duration: 24s;
-    }
-
-    @keyframes drift {
-      0%, 100% { transform: translate3d(0, 0, 0) scale(1); }
-      33% { transform: translate3d(18px, -12px, 0) scale(1.04); }
-      66% { transform: translate3d(-14px, 16px, 0) scale(0.98); }
-    }
-
-    .shell {
-      position: relative;
-      z-index: 1;
-      max-width: 1550px;
+    /* ── Shell ─────────────────────────────────────── */
+    .app-shell {
+      max-width: calc(100vw - 24px);
       margin: 0 auto;
-      min-height: calc(100vh - 2rem);
-      border-radius: 30px;
-      background: linear-gradient(120deg, rgba(255, 255, 255, 0.82), rgba(255, 255, 255, 0.62));
-      backdrop-filter: blur(10px);
-      border: 1px solid rgba(255, 255, 255, 0.82);
-      box-shadow: var(--shadow);
+      min-height: calc(100vh - 24px);
       display: grid;
-      grid-template-columns: 98px 1fr;
+      grid-template-columns: 260px minmax(0, 1fr);
+      background: var(--surface);
+      border-radius: var(--r-xl);
+      border: 1px solid var(--border);
+      box-shadow: var(--shadow-deep);
       overflow: hidden;
     }
 
-    .sidebar {
-      border-right: 1px solid var(--line);
-      background: linear-gradient(180deg, #eff2fb 0%, #f8f9fd 100%);
-      padding: 1rem 0.6rem;
+    /* ── Left sidebar ──────────────────────────────── */
+    .left {
       display: flex;
       flex-direction: column;
-      gap: 0.62rem;
-      align-items: center;
+      padding: 24px 18px;
+      gap: 2px;
+      background: var(--brand);
+      border-right: 1px solid rgba(255,255,255,.06);
     }
 
-    .brand {
-      width: 50px;
-      height: 50px;
-      border-radius: 999px;
-      display: grid;
-      place-items: center;
-      background: var(--accent);
-      color: #fff;
-      box-shadow: 0 10px 22px rgba(23, 31, 61, 0.34);
-      margin-bottom: 0.2rem;
-    }
-
-    .brand iconify-icon { font-size: 1.4rem; }
-
-    .nav-pill {
-      width: 100%;
-      text-decoration: none;
-      color: var(--muted);
-      padding: 0.45rem 0.34rem;
-      border-radius: 13px;
-      border: 1px solid transparent;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 0.3rem;
-      transition: all .24s ease;
-    }
-
-    .nav-pill iconify-icon { font-size: 1.16rem; }
-
-    .nav-pill span {
-      font-size: 0.64rem;
-      text-transform: uppercase;
-      letter-spacing: 0.07em;
-      font-weight: 800;
-    }
-
-    .nav-pill:hover {
-      border-color: #d7deef;
-      background: #fff;
-      color: #485473;
-      transform: translateY(-1px);
-    }
-
-    .nav-pill.active {
-      background: var(--accent);
-      color: #fff;
-      box-shadow: 0 10px 20px rgba(24, 31, 65, 0.30);
-    }
-
-    .nav-sep { flex: 1; }
-
-    .nav-foot {
-      width: 44px;
-      height: 44px;
-      border-radius: 999px;
-      border: 1px solid var(--line);
-      background: #fff;
-      color: #505d78;
-      display: grid;
-      place-items: center;
-    }
-
-    .main {
-      padding: 1.2rem 1.35rem 1.45rem;
-      display: flex;
-      flex-direction: column;
-      gap: 0.95rem;
-    }
-
-    .topbar {
+    .logo {
       display: flex;
       align-items: center;
-      justify-content: space-between;
-      gap: 0.8rem;
-      padding: 0 0.12rem;
+      gap: 10px;
+      padding: 0 8px 22px;
+      border-bottom: 1px solid rgba(255,255,255,.08);
+      margin-bottom: 14px;
     }
 
-    .title-wrap h1 {
-      margin: 0;
-      font-size: clamp(1.35rem, 3vw, 2.2rem);
-      letter-spacing: -0.02em;
-      line-height: 1.02;
+    .logo-mark {
+      width: 34px; height: 34px; border-radius: 10px;
+      background: var(--accent); display: grid; place-items: center;
+      color: #fff; font-size: 16px; flex-shrink: 0;
+      box-shadow: 0 4px 12px rgba(59,91,219,.45);
     }
 
-    .title-wrap p {
-      margin: 0.22rem 0 0;
-      color: var(--muted);
-      font-size: 0.9rem;
+    .logo-text { font-weight: 800; font-size: 1.25rem; letter-spacing: -0.03em; color: #fff; }
+
+    .nav-label {
+      font-size: 10px; font-weight: 700; letter-spacing: .1em;
+      text-transform: uppercase; color: rgba(255,255,255,.3);
+      padding: 8px 10px 6px;
     }
 
-    .top-chips {
-      display: flex;
-      gap: 0.5rem;
-      align-items: center;
+    .nav-item {
+      display: flex; align-items: center; gap: 10px;
+      padding: 10px 12px; border-radius: var(--r-md);
+      border: 1px solid transparent; font: inherit; font-size: 13.5px;
+      font-weight: 500; color: rgba(255,255,255,.55);
+      background: transparent; cursor: pointer; text-align: left;
+      transition: background var(--transition), color var(--transition), border-color var(--transition);
+      width: 100%; position: relative;
+    }
+
+    .nav-item iconify-icon { font-size: 17px; flex-shrink: 0; }
+    .nav-item:hover { background: rgba(255,255,255,.07); color: rgba(255,255,255,.9); }
+
+    .nav-item.active {
+      background: rgba(255,255,255,.1); border-color: rgba(255,255,255,.12);
+      color: #fff; font-weight: 600;
+    }
+
+    .nav-item.active iconify-icon { color: #93a9f5; }
+
+    .nav-badge {
+      margin-left: auto; min-width: 20px; height: 20px;
+      background: var(--accent); color: #fff; border-radius: 99px;
+      font-size: 10px; font-weight: 700;
+      display: inline-flex; align-items: center; justify-content: center;
+      padding: 0 6px; line-height: 1;
+    }
+
+    .left-footer {
+      margin-top: auto; padding: 14px;
+      background: rgba(255,255,255,.05);
+      border: 1px solid rgba(255,255,255,.08); border-radius: var(--r-lg);
+    }
+
+    .left-footer strong { color: rgba(255,255,255,.8); font-size: 12.5px; }
+    .left-footer p { color: rgba(255,255,255,.38); font-size: 11.5px; margin-top: 4px; line-height: 1.5; }
+    .left-footer code { color: rgba(255,255,255,.55); font-size: 10.5px; word-break: break-all; }
+
+    /* ── Center ────────────────────────────────────── */
+    .center {
+      display: flex; flex-direction: column;
+      padding: 36px 40px; gap: 22px;
+      min-width: 0; background: var(--surface-2);
+    }
+
+    /* ── Topbar ────────────────────────────────────── */
+    .topbar { display: flex; align-items: flex-start; justify-content: space-between; gap: 24px; }
+
+    .topbar-title h1 {
+      font-size: clamp(1.65rem, 2.4vw, 2.1rem);
+      font-weight: 800; letter-spacing: -0.04em; line-height: 1.15;
+    }
+
+    .topbar-title p { margin-top: 7px; color: var(--ink-3); font-size: 14px; max-width: 60ch; line-height: 1.65; }
+
+    .topbar-meta { display: flex; flex-direction: column; align-items: flex-end; gap: 6px; flex-shrink: 0; padding-top: 4px; }
+    .topbar-meta .total-label { font-size: 12.5px; color: var(--ink-3); font-weight: 500; }
+
+    .badge {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 5px 11px; border-radius: 999px;
+      border: 1px solid var(--border); background: var(--surface);
+      font-size: 12px; font-weight: 600; color: var(--ink-2); white-space: nowrap;
+    }
+
+    .badge iconify-icon { font-size: 13px; color: var(--ink-3); }
+
+    /* ── Stat cards ────────────────────────────────── */
+    .stat-row { display: grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap: 14px; }
+
+    .stat-card {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: var(--r-lg); padding: 22px 24px;
+      box-shadow: var(--shadow-card); display: flex; flex-direction: column; gap: 8px;
+      transition: box-shadow var(--transition), transform var(--transition);
+    }
+
+    .stat-card:hover { box-shadow: var(--shadow-lift); transform: translateY(-1px); }
+
+    .sc-icon { width: 36px; height: 36px; border-radius: 10px; display: grid; place-items: center; font-size: 17px; }
+    .sc-blue  { background: var(--accent-ll); color: var(--accent); }
+    .sc-teal  { background: var(--teal-ll);   color: var(--teal); }
+    .sc-amber { background: var(--amber-l);   color: var(--amber); }
+    .sc-gold  { background: var(--gold-l);    color: var(--gold); }
+    .sc-label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .07em; color: var(--ink-3); margin-top: 2px; }
+    .sc-value { font-size: 2rem; font-weight: 800; letter-spacing: -0.04em; color: var(--ink); line-height: 1; }
+    .sc-sub   { font-size: 12px; color: var(--ink-3); }
+
+    /* ── Card ──────────────────────────────────────── */
+    .card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--r-lg); box-shadow: var(--shadow-card); }
+
+    .card-head {
+      display: flex; align-items: center; justify-content: space-between; gap: 12px;
+      padding: 20px 24px 16px; border-bottom: 1px solid var(--border-2);
+    }
+
+    .card-head h2, .card-head h3 { font-size: 15px; font-weight: 700; letter-spacing: -0.02em; }
+    .card-body { padding: 20px 24px; }
+    .card-sub  { font-size: 12px; color: var(--ink-3); margin-top: 2px; }
+
+    /* ── Filter bar ────────────────────────────────── */
+    .filter-bar { display: flex; align-items: flex-end; gap: 12px; flex-wrap: wrap; }
+    .filter-group { display: flex; flex-direction: column; gap: 5px; }
+
+    .filter-group label {
+      font-size: 11px; font-weight: 700; text-transform: uppercase;
+      letter-spacing: .07em; color: var(--ink-3);
+    }
+
+    .filter-group select {
+      height: 36px; padding: 0 10px; border: 1px solid var(--border); border-radius: var(--r-sm);
+      background: var(--surface); font: inherit; font-size: 13px; color: var(--ink-2);
+      min-width: 160px; cursor: pointer;
+      transition: border-color var(--transition), box-shadow var(--transition);
+    }
+
+    .filter-group select:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px rgba(59,91,219,.12); }
+    .filter-group select[multiple] { height: auto; min-height: 90px; padding: 6px 8px; }
+    .filter-group select.teal-focus:focus { border-color: var(--teal); box-shadow: 0 0 0 3px rgba(13,148,136,.12); }
+
+    .filter-count {
+      display: inline-flex; align-items: center; padding: 0 12px; height: 36px;
+      border-radius: var(--r-sm); font-size: 12.5px; font-weight: 600;
+      white-space: nowrap; border: 1px solid transparent;
+    }
+
+    .fc-blue { background: var(--accent-ll); color: var(--accent); border-color: rgba(59,91,219,.15); }
+    .fc-teal { background: var(--teal-ll);   color: var(--teal);   border-color: rgba(13,148,136,.15); }
+
+    /* ── Pills ─────────────────────────────────────── */
+    .pill {
+      display: inline-flex; align-items: center; gap: 5px;
+      padding: 3px 10px; border-radius: 999px; font-size: 11.5px;
+      font-weight: 600; border: 1px solid transparent;
+    }
+
+    .pill-blue    { background: var(--accent-ll); color: var(--accent); border-color: rgba(59,91,219,.2); }
+    .pill-teal    { background: var(--teal-ll);   color: var(--teal);   border-color: rgba(13,148,136,.2); }
+    .pill-neutral { background: var(--surface-2); color: var(--ink-2);  border-color: var(--border); }
+    .pill-amber   { background: var(--amber-l);   color: var(--amber);  border-color: rgba(217,119,6,.2); }
+    .pill-rose    { background: var(--rose-l);    color: var(--rose);   border-color: rgba(225,29,72,.2); }
+    .pill-green   { background: #dcfce7;          color: #15803d;       border-color: rgba(21,128,61,.2); }
+
+    /* ── Charts ────────────────────────────────────── */
+    .chart-wrap { width: 100%; border-radius: var(--r-md); }
+
+    /* ── Tables ────────────────────────────────────── */
+    .table-scroll { overflow: auto; max-height: 380px; }
+    table { width: 100%; border-collapse: collapse; background: var(--surface); }
+    thead th {
+      position: sticky; top: 0; z-index: 1; padding: 11px 16px;
+      background: var(--surface-2); border-bottom: 1px solid var(--border);
+      font-size: 11px; font-weight: 700; text-transform: uppercase;
+      letter-spacing: .07em; color: var(--ink-3); text-align: left; white-space: nowrap;
+    }
+    tbody tr { border-bottom: 1px solid var(--border-2); transition: background var(--transition); }
+    tbody tr:last-child { border-bottom: none; }
+    tbody tr:hover { background: var(--accent-ll); }
+    tbody td { padding: 11px 16px; font-size: 13px; color: var(--ink-2); vertical-align: top; }
+    tbody td:first-child { font-weight: 500; color: var(--ink); }
+    .pct-cell { color: var(--ink-3); font-size: 12px; }
+
+    /* ── Theme rows ────────────────────────────────── */
+    .theme-list { overflow: auto; }
+
+    .theme-row {
+      display: flex; align-items: center; gap: 12px;
+      padding: 12px 24px; border-bottom: 1px solid var(--border-2);
+      cursor: pointer; transition: background var(--transition); user-select: none;
+    }
+
+    .theme-row:last-child { border-bottom: none; }
+    .theme-row:hover { background: var(--teal-ll); }
+
+    .theme-row.selected {
+      background: var(--teal-ll);
+      border-left: 3px solid var(--teal);
+      padding-left: 21px;
+    }
+
+    .theme-row.selected .tr-name  { color: var(--teal-d); font-weight: 600; }
+    .theme-row.selected .tr-count { color: var(--teal); }
+
+    .tr-name {
+      font-size: 13px; font-weight: 500; color: var(--ink);
+      flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+
+    .tr-bar-wrap { flex: 0 0 100px; height: 5px; background: var(--border-2); border-radius: 99px; overflow: hidden; }
+
+    .tr-bar {
+      height: 100%; background: linear-gradient(90deg, #2dd4bf, var(--teal-d));
+      border-radius: 99px; transform-origin: left; transform: scaleX(0);
+      transition: transform .65s cubic-bezier(.4,0,.2,1);
+    }
+
+    .tr-count { font-size: 12.5px; font-weight: 700; color: var(--ink); min-width: 38px; text-align: right; }
+    .tr-pct   { font-size: 11.5px; color: var(--ink-3); min-width: 48px; text-align: right; }
+
+    /* ── Quote cards ───────────────────────────────── */
+    .quote-feed { padding: 16px 24px; display: flex; flex-direction: column; gap: 10px; }
+
+    .quote-card {
+      border: 1px solid var(--border-2); border-radius: var(--r-md);
+      padding: 14px 16px; background: var(--surface);
+      display: flex; flex-direction: column; gap: 8px;
+      transition: border-color var(--transition), box-shadow var(--transition);
+      position: relative;
+      animation: fadeUp .28s cubic-bezier(.4,0,.2,1) both;
+    }
+
+    .quote-card:hover { border-color: rgba(13,148,136,.25); box-shadow: var(--shadow-card); }
+
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(5px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Pin button */
+    .pin-btn {
+      position: absolute; top: 10px; right: 10px;
+      width: 28px; height: 28px; border-radius: var(--r-sm);
+      border: 1px solid var(--border); background: var(--surface);
+      color: var(--ink-3); cursor: pointer; font-size: 14px;
+      display: none; /* hidden by default, shown on hover */
+      align-items: center; justify-content: center;
+      transition: background var(--transition), color var(--transition), border-color var(--transition), transform var(--transition);
+    }
+
+    .pin-btn:hover { background: var(--gold-l); color: var(--gold); border-color: rgba(180,83,9,.2); transform: scale(1.1); }
+    .pin-btn.pinned { display: inline-flex !important; background: var(--gold-l); color: var(--gold); border-color: rgba(180,83,9,.25); }
+
+    .quote-card:hover .pin-btn { display: inline-flex; }
+
+    /* Mobile: always show pin button */
+    @media (hover: none) {
+      .pin-btn { display: inline-flex; }
+    }
+
+    .quote-text { font-size: 13.5px; line-height: 1.7; color: var(--ink); padding-right: 36px; }
+
+    .quote-expand-btn {
+      background: none; border: none; padding: 0; cursor: pointer; font: inherit;
+      font-size: 12px; font-weight: 600; color: var(--teal); text-decoration: none;
+    }
+
+    .quote-expand-btn:hover { color: var(--teal-d); text-decoration: underline; }
+    .quote-meta { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+
+    /* ── Quotes header ─────────────────────────────── */
+    .quotes-header {
+      display: flex; align-items: flex-start; justify-content: space-between;
+      gap: 12px; padding: 20px 24px 16px; border-bottom: 1px solid var(--border-2);
       flex-wrap: wrap;
-      justify-content: flex-end;
     }
 
-    .chip {
-      border: 1px solid var(--line);
-      background: var(--chip);
-      color: #4f5b73;
-      border-radius: 999px;
-      padding: 0.4rem 0.68rem;
-      display: inline-flex;
-      align-items: center;
-      gap: 0.32rem;
-      font-size: 0.74rem;
-      font-weight: 700;
-      letter-spacing: 0.01em;
-      white-space: nowrap;
+    .quotes-header-left { display: flex; flex-direction: column; gap: 4px; }
+    .quotes-header h3 { font-size: 15px; font-weight: 700; letter-spacing: -0.02em; display: flex; align-items: center; gap: 8px; }
+    .quotes-header .qh-sub { font-size: 12px; color: var(--ink-3); }
+
+    /* ── Show more button ──────────────────────────── */
+    .show-more-wrap {
+      position: relative;
+      padding: 0 24px 20px;
     }
 
-    .chip iconify-icon { font-size: 0.95rem; }
-
-    .panel {
-      background: var(--panel);
-      border: 1px solid var(--line);
-      border-radius: var(--radius-lg);
-      padding: 0.95rem;
-      box-shadow: 0 10px 30px rgba(22, 31, 63, 0.06);
+    .show-more-wrap::before {
+      content: '';
+      position: absolute;
+      top: -40px; left: 0; right: 0;
+      height: 40px;
+      background: linear-gradient(to bottom, transparent, var(--surface));
+      pointer-events: none;
     }
 
-    .tilt {
-      transform-style: preserve-3d;
-      transition: transform .2s ease, box-shadow .2s ease;
+    .show-more-btn {
+      width: 100%; padding: 12px 20px;
+      background: var(--surface-2); border: 1px solid var(--border);
+      border-radius: var(--r-md); cursor: pointer; font: inherit;
+      display: flex; align-items: center; justify-content: center; gap: 10px;
+      color: var(--ink-2); font-size: 13px; font-weight: 600;
+      transition: background var(--transition), border-color var(--transition), box-shadow var(--transition);
     }
 
-    .hero {
-      border-radius: var(--radius-lg);
-      border: 1px solid #e8edf8;
-      background: linear-gradient(115deg, #fbfcff 0%, #f6f8ff 44%, #fbfdff 100%);
-      padding: 1.05rem;
-      display: grid;
-      grid-template-columns: 1.2fr .8fr;
-      gap: 0.9rem;
-      align-items: center;
+    .show-more-btn:hover {
+      background: var(--teal-ll); border-color: rgba(13,148,136,.2);
+      box-shadow: var(--shadow-card);
     }
 
-    .hero h2 {
-      margin: 0;
-      font-size: clamp(1.35rem, 3.2vw, 2.4rem);
-      letter-spacing: -0.02em;
-      line-height: 1.06;
+    .show-more-btn iconify-icon { font-size: 16px; color: var(--teal); }
+
+    .show-more-remaining {
+      margin-left: auto; padding: 2px 9px; border-radius: 99px;
+      background: var(--teal-ll); color: var(--teal);
+      font-size: 11px; font-weight: 700;
+      border: 1px solid rgba(13,148,136,.2);
     }
 
-    .hero p {
-      margin: 0.5rem 0 0;
-      color: var(--muted);
-      max-width: 64ch;
-      font-size: 0.93rem;
+    /* ── Quotes state messages ─────────────────────── */
+    .quotes-loading { padding: 32px 24px; display: flex; align-items: center; justify-content: center; gap: 10px; color: var(--ink-3); font-size: 13px; }
+    .quotes-empty   { padding: 32px 24px; text-align: center; color: var(--ink-3); font-size: 13px; }
+
+    .spinner { width: 18px; height: 18px; border: 2px solid var(--border); border-top-color: var(--teal); border-radius: 50%; animation: spin .7s linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ── Empty state ───────────────────────────────── */
+    .empty-state {
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      gap: 14px; padding: 64px 32px; text-align: center;
     }
 
-    .hero-panels {
-      display: grid;
-      grid-template-columns: repeat(3, minmax(0, 1fr));
-      gap: 0.58rem;
-      margin-top: 0.85rem;
+    .empty-state-icon {
+      width: 72px; height: 72px; border-radius: 20px;
+      background: var(--gold-l); display: grid; place-items: center;
+      font-size: 32px; color: var(--gold);
+      border: 2px solid rgba(180,83,9,.12);
     }
 
-    .hero-stat {
-      border: 1px solid var(--line);
-      background: #fff;
-      border-radius: var(--radius-md);
-      padding: 0.62rem 0.68rem;
+    .empty-state h3 { font-size: 17px; font-weight: 700; letter-spacing: -0.02em; color: var(--ink); }
+
+    .empty-state p { font-size: 13.5px; color: var(--ink-3); max-width: 36ch; line-height: 1.65; }
+
+    .empty-state .hint-chip {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 6px 14px; border-radius: 99px;
+      background: var(--gold-l); border: 1px solid rgba(180,83,9,.15);
+      font-size: 12px; font-weight: 600; color: var(--gold);
     }
 
-    .hero-stat .k {
-      font-size: 0.7rem;
-      text-transform: uppercase;
-      letter-spacing: 0.07em;
-      color: var(--muted);
-      font-weight: 800;
+    /* ── Pinned quote card (Pinned tab) ────────────── */
+    .pinned-feed { display: flex; flex-direction: column; gap: 10px; padding: 20px 24px; }
+
+    .pinned-card {
+      border: 1px solid var(--border-2); border-radius: var(--r-md); padding: 14px 16px;
+      background: var(--surface); display: flex; flex-direction: column; gap: 10px;
+      transition: border-color var(--transition), box-shadow var(--transition);
+      animation: fadeUp .28s cubic-bezier(.4,0,.2,1) both;
     }
 
-    .hero-stat .v {
-      margin-top: 0.26rem;
-      font-size: 1.08rem;
-      font-weight: 800;
-      letter-spacing: -0.01em;
+    .pinned-card:hover { border-color: rgba(180,83,9,.2); box-shadow: var(--shadow-card); }
+
+    .pinned-card-top { display: flex; align-items: flex-start; gap: 12px; }
+    .pinned-card-text { font-size: 13.5px; line-height: 1.7; color: var(--ink); flex: 1; }
+
+    .unpin-btn {
+      flex-shrink: 0; width: 30px; height: 30px; border-radius: var(--r-sm);
+      border: 1px solid rgba(180,83,9,.2); background: var(--gold-l);
+      color: var(--gold); cursor: pointer; font-size: 14px;
+      display: inline-flex; align-items: center; justify-content: center;
+      transition: background var(--transition), transform var(--transition);
     }
 
-    .hero-note {
-      border: 1px solid var(--line);
-      border-radius: var(--radius-md);
-      background: #fff;
-      padding: 0.82rem;
-      display: flex;
-      flex-direction: column;
-      justify-content: space-between;
-      min-height: 138px;
-    }
+    .unpin-btn:hover { background: var(--rose-l); color: var(--rose); border-color: rgba(225,29,72,.2); transform: scale(1.08); }
 
-    .hero-note strong {
-      font-size: 0.95rem;
-      line-height: 1.35;
-    }
+    /* ── Tab panels ────────────────────────────────── */
+    .tab-panel { display: none; flex-direction: column; gap: 22px; }
+    .tab-panel.active { display: flex; }
 
-    .hero-note small {
-      color: var(--muted);
-      font-size: 0.78rem;
-      line-height: 1.35;
-    }
+    /* ── Viz grid ──────────────────────────────────── */
+    .viz-grid-60-40 { display: grid; grid-template-columns: 1.5fr 1fr; gap: 16px; }
 
-    .messages {
-      display: grid;
-      gap: 0.5rem;
-    }
-
-    .msg {
-      border-radius: 12px;
-      border: 1px solid var(--line);
-      padding: 0.56rem 0.75rem;
-      font-size: 0.9rem;
-    }
-
-    .msg.success { background: var(--success); border-color: #bfe8cc; }
-    .msg.warning { background: var(--warning); border-color: #f0d698; }
-    .msg.error { background: var(--error); border-color: #f2bbc4; }
-    .msg.info { background: var(--accent-soft); border-color: #cdd8fb; }
-
-    .upload-row {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 0.6rem;
-      align-items: flex-end;
-    }
-
-    .field { width: 100%; }
-
-    .field label {
-      display: block;
-      margin-bottom: 0.28rem;
-      font-size: 0.7rem;
-      color: var(--muted);
-      text-transform: uppercase;
-      letter-spacing: 0.08em;
-      font-weight: 800;
-    }
-
-    .field select,
-    .field input[type="file"] {
-      width: 100%;
-      border: 1px solid var(--line);
-      border-radius: var(--radius-sm);
-      background: #fff;
-      padding: 0.44rem 0.5rem;
-      font: inherit;
-      color: #27314b;
-    }
-
-    .field select[multiple] { min-height: 138px; }
-
-    button {
-      border: none;
-      background: var(--accent);
-      color: #fff;
-      border-radius: var(--radius-sm);
-      padding: 0.52rem 0.86rem;
-      font: inherit;
-      font-weight: 800;
-      cursor: pointer;
-      transition: transform .18s ease, box-shadow .2s ease;
-    }
-
-    button:hover {
-      transform: translateY(-1px);
-      box-shadow: 0 10px 16px rgba(24, 32, 65, 0.28);
-    }
-
-    .btn-soft { background: #667592; }
-
-    .filters {
-      display: grid;
-      grid-template-columns: repeat(3, minmax(0, 1fr));
-      gap: 0.7rem;
-    }
-
-    .actions {
-      margin-top: 0.78rem;
-      display: flex;
-      gap: 0.55rem;
-      flex-wrap: wrap;
-      align-items: center;
-    }
-
-    .grid-two {
-      display: grid;
-      grid-template-columns: 1.45fr 1fr;
-      gap: 0.8rem;
-      align-items: start;
-    }
-
-    .chart-shell {
-      border: 1px solid var(--line);
-      border-radius: var(--radius-md);
-      background: linear-gradient(180deg, #ffffff 0%, #fbfcff 100%);
-      padding: 0.34rem;
-    }
-
-    .chart-wrap {
-      width: 100%;
-      height: 360px;
-      border-radius: 12px;
-    }
-
-    .table-wrap {
-      border: 1px solid var(--line);
-      border-radius: var(--radius-md);
-      background: #fff;
-      overflow: auto;
-      max-height: 390px;
-      margin-top: 0.66rem;
-    }
-
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      min-width: 660px;
-    }
-
-    th, td {
-      border-bottom: 1px solid #e8edf8;
-      text-align: left;
-      font-size: 0.86rem;
-      padding: 0.54rem 0.6rem;
-      vertical-align: top;
-    }
-
-    th {
-      position: sticky;
-      top: 0;
-      z-index: 1;
-      background: #f7f9ff;
-      color: #495774;
-      font-size: 0.78rem;
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
-    }
-
+    /* ── Context grid ──────────────────────────────── */
     .context-grid {
-      margin-top: 0.7rem;
-      border: 1px solid var(--line);
-      border-radius: var(--radius-md);
-      background: #f9fbff;
-      padding: 0.75rem;
-      display: grid;
-      grid-template-columns: minmax(180px, 260px) 1fr;
-      gap: 0.34rem 0.8rem;
+      display: grid; grid-template-columns: minmax(160px, 220px) 1fr;
+      gap: 6px 12px; background: var(--surface-2);
+      border: 1px solid var(--border); border-radius: var(--r-md);
+      padding: 16px; font-size: 13px;
+    }
+    .context-grid .ck { font-weight: 600; color: var(--ink-2); }
+
+    /* ── Notice ────────────────────────────────────── */
+    .notice { display: inline-flex; align-items: center; gap: 6px; font-size: 12.5px; color: var(--amber); background: var(--amber-l); border: 1px solid rgba(217,119,6,.2); border-radius: var(--r-sm); padding: 7px 12px; }
+
+    /* ── Reveal ────────────────────────────────────── */
+    .reveal { opacity: 0; transform: translateY(10px); transition: opacity .4s cubic-bezier(.4,0,.2,1), transform .4s cubic-bezier(.4,0,.2,1); }
+    .reveal.visible { opacity: 1; transform: translateY(0); }
+
+    /* ── Total responses standalone (Response Rate tab) */
+    .rr-total {
+      display: flex; align-items: center; gap: 14px;
+      padding: 16px 22px; background: var(--surface);
+      border-radius: var(--r-lg); border: 1px solid var(--border-2);
+      box-shadow: var(--shadow-card);
+    }
+    .rr-total-icon {
+      width: 40px; height: 40px; border-radius: var(--r-md); flex-shrink: 0;
+      background: var(--teal-ll); color: var(--teal); font-size: 20px;
+      display: grid; place-items: center; border: 1px solid rgba(13,148,136,.15);
+    }
+    .rr-total-label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; color: var(--ink-3); }
+    .rr-total-value { font-size: 24px; font-weight: 800; color: var(--ink); letter-spacing: -.03em; line-height: 1.1; }
+    .rr-total-sub { font-size: 12px; color: var(--ink-3); }
+
+    /* ── Shuffle icon button ────────────────────────── */
+    .shuffle-icon-btn {
+      display: inline-flex; align-items: center; justify-content: center;
+      width: 26px; height: 26px; border-radius: var(--r-sm); flex-shrink: 0;
+      border: 1px solid var(--border); background: var(--surface-2);
+      color: var(--ink-3); cursor: pointer; font-size: 14px;
+      transition: background var(--transition), color var(--transition), border-color var(--transition);
+    }
+    .shuffle-icon-btn:hover { background: var(--teal-ll); color: var(--teal); border-color: rgba(13,148,136,.25); }
+
+    /* ── Pin note ───────────────────────────────────── */
+    .pin-note-wrap { padding-top: 8px; border-top: 1px solid var(--border-2); display: flex; flex-direction: column; gap: 6px; }
+    .note-toggle-btn {
+      display: inline-flex; align-items: center; gap: 5px;
+      padding: 4px 10px; border-radius: var(--r-sm); align-self: flex-start;
+      border: 1px solid var(--border); background: var(--surface-2);
+      color: var(--ink-3); font: inherit; font-size: 12px; font-weight: 600;
+      cursor: pointer; transition: background var(--transition), color var(--transition), border-color var(--transition);
+    }
+    .note-toggle-btn:hover, .note-toggle-btn.has-note { color: var(--teal); border-color: rgba(13,148,136,.25); background: var(--teal-ll); }
+    .note-toggle-btn iconify-icon { font-size: 13px; }
+    .pin-note {
+      display: none; width: 100%; min-height: 60px; padding: 8px 12px;
+      border: 1px solid var(--border); border-radius: var(--r-sm);
+      background: var(--surface-2); font: inherit; font-size: 13px;
+      color: var(--ink); resize: vertical; line-height: 1.55;
+      transition: border-color var(--transition), box-shadow var(--transition);
+    }
+    .pin-note.note-open { display: block; }
+    .pin-note:focus { outline: none; border-color: var(--teal); box-shadow: 0 0 0 3px rgba(13,148,136,.1); }
+    .pin-note::placeholder { color: var(--ink-3); }
+
+    /* ── Remove all pins button ─────────────────────── */
+    .btn-remove-all {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 6px 12px; border-radius: var(--r-sm);
+      border: 1px solid rgba(225,29,72,.25); background: transparent;
+      color: var(--rose); font: inherit; font-size: 12px; font-weight: 600;
+      cursor: pointer; transition: background var(--transition), border-color var(--transition);
+    }
+    .btn-remove-all:hover { background: var(--rose-l); border-color: rgba(225,29,72,.4); }
+
+    /* ── Confirm modal ──────────────────────────────── */
+    .modal-overlay {
+      position: fixed; inset: 0; z-index: 1000;
+      background: rgba(15,22,36,.5); backdrop-filter: blur(4px);
+      display: flex; align-items: center; justify-content: center; padding: 24px;
+    }
+    .modal-dialog {
+      background: var(--surface); border-radius: var(--r-xl);
+      padding: 32px 28px 24px; box-shadow: var(--shadow-deep);
+      width: 100%; max-width: 380px; position: relative;
+      display: flex; flex-direction: column; align-items: center; gap: 12px;
+      text-align: center; animation: fadeUp .2s cubic-bezier(.4,0,.2,1) both;
+    }
+    .modal-close {
+      position: absolute; top: 12px; right: 12px; width: 28px; height: 28px;
+      border-radius: var(--r-sm); border: 1px solid var(--border);
+      background: var(--surface-2); color: var(--ink-3); cursor: pointer; font-size: 14px;
+      display: inline-flex; align-items: center; justify-content: center;
+      transition: background var(--transition), color var(--transition);
+    }
+    .modal-close:hover { background: var(--border); color: var(--ink); }
+    .modal-warn-icon {
+      width: 56px; height: 56px; border-radius: 16px;
+      background: var(--rose-l); color: var(--rose); font-size: 26px;
+      display: grid; place-items: center; border: 2px solid rgba(225,29,72,.12);
+    }
+    .modal-dialog h3 { font-size: 16px; font-weight: 700; color: var(--ink); letter-spacing: -.01em; }
+    .modal-dialog p { font-size: 13px; color: var(--ink-2); line-height: 1.65; max-width: 30ch; }
+    .modal-actions { display: flex; gap: 10px; margin-top: 6px; width: 100%; }
+    .modal-actions .btn-cancel {
+      flex: 1; height: 38px; border-radius: var(--r-sm);
+      border: 1px solid var(--border); background: var(--surface-2);
+      color: var(--ink-2); font: inherit; font-size: 13px; font-weight: 600;
+      cursor: pointer; transition: background var(--transition);
+    }
+    .modal-actions .btn-cancel:hover { background: var(--border); }
+    .modal-actions .btn-proceed {
+      flex: 1; height: 38px; border-radius: var(--r-sm);
+      border: none; background: var(--rose); color: #fff;
+      font: inherit; font-size: 13px; font-weight: 700; cursor: pointer;
+      transition: background var(--transition);
+    }
+    .modal-actions .btn-proceed:hover { background: #c01940; }
+
+    /* ── Note preview text ─────────────────────────── */
+    .note-preview {
+      font-size: 12px; color: var(--ink-3); font-style: italic;
+      line-height: 1.5; padding: 1px 2px; white-space: pre-wrap;
+      word-break: break-word;
     }
 
-    .context-grid .key {
-      font-size: 0.82rem;
-      color: #4d5a75;
-      font-weight: 800;
+    /* ── Privacy notice ─────────────────────────────── */
+    .privacy-notice {
+      display: flex; align-items: center; gap: 8px;
+      padding: 10px 16px; border-radius: var(--r-md);
+      background: var(--surface-2); border: 1px solid var(--border-2);
+      font-size: 12px; color: var(--ink-3);
+    }
+    .privacy-notice iconify-icon { font-size: 14px; flex-shrink: 0; }
+
+    /* ── Hide-tags toggle ───────────────────────────── */
+    body.hide-tags .quote-meta { display: none; }
+    .hide-tags-btn {
+      display: inline-flex; align-items: center; gap: 5px;
+      padding: 5px 11px; border-radius: var(--r-sm); white-space: nowrap;
+      border: 1px solid var(--border); background: var(--surface-2);
+      color: var(--ink-3); font: inherit; font-size: 12px; font-weight: 600;
+      cursor: pointer; transition: background var(--transition), color var(--transition), border-color var(--transition);
+    }
+    .hide-tags-btn:hover { background: var(--teal-ll); color: var(--teal); border-color: rgba(13,148,136,.25); }
+    .hide-tags-btn.active { background: var(--teal-ll); color: var(--teal); border-color: rgba(13,148,136,.3); }
+    .hide-tags-btn iconify-icon { font-size: 13px; }
+
+    /* ── Quote info popup ───────────────────────────── */
+    #quote-popup {
+      position: fixed; z-index: 600;
+      background: #1a2340; color: #fff;
+      border-radius: 12px; padding: 14px 16px 12px;
+      min-width: 220px; max-width: 290px;
+      box-shadow: 0 12px 40px rgba(0,0,0,.35), 0 2px 8px rgba(0,0,0,.2);
+      font-size: 12.5px; pointer-events: auto;
+      animation: fadeUp .15s cubic-bezier(.4,0,.2,1) both;
+    }
+    .qp-header {
+      font-size: 10px; text-transform: uppercase; letter-spacing: .07em;
+      color: rgba(255,255,255,.4); font-weight: 700; margin-bottom: 8px;
+    }
+    .qp-row {
+      display: flex; gap: 10px; padding: 4px 0;
+      border-bottom: 1px solid rgba(255,255,255,.07); align-items: baseline;
+    }
+    .qp-row:last-child { border-bottom: none; padding-bottom: 0; }
+    .qp-key { color: rgba(255,255,255,.5); flex-shrink: 0; font-size: 11px; width: 96px; }
+    .qp-val { color: #fff; font-weight: 600; font-size: 12px; word-break: break-word; }
+
+    /* Make quote cards show clickable cursor */
+    .quote-card, .pinned-card { cursor: default; }
+    .quote-card .quote-text, .pinned-card .pinned-card-text { cursor: pointer; }
+
+    /* ── Responsive ────────────────────────────────── */
+    @media (max-width: 1000px) {
+      .center { padding: 24px 20px; }
+      .viz-grid-60-40 { grid-template-columns: 1fr; }
     }
 
-    .soft-note {
-      margin-top: 0.48rem;
-      color: var(--muted);
-      font-size: 0.88rem;
-    }
-
-    .empty {
-      border: 1px dashed #cdd6eb;
-      border-radius: var(--radius-lg);
-      padding: 2rem 1rem;
-      text-align: center;
-      color: var(--muted);
-      background: #fbfcff;
-    }
-
-    .reveal {
-      opacity: 0;
-      transform: translateY(14px);
-      transition: opacity .52s ease, transform .52s ease;
-    }
-
-    .reveal.visible {
-      opacity: 1;
-      transform: translateY(0);
-    }
-
-    @media (max-width: 1220px) {
-      .hero { grid-template-columns: 1fr; }
-      .filters { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-      .grid-two { grid-template-columns: 1fr; }
-    }
-
-    @media (max-width: 900px) {
-      body { padding: 0.45rem; }
-      .shell {
-        border-radius: 18px;
-        grid-template-columns: 1fr;
-      }
-      .sidebar {
-        flex-direction: row;
-        overflow-x: auto;
-        justify-content: flex-start;
-        gap: 0.48rem;
-        padding: 0.58rem;
-      }
-      .nav-pill {
-        width: auto;
-        min-width: 60px;
-        padding: 0.45rem 0.42rem;
-      }
-      .nav-sep { display: none; }
-      .main { padding: 0.82rem; }
-      .filters { grid-template-columns: 1fr; }
-      .hero-panels { grid-template-columns: 1fr; }
-      .context-grid { grid-template-columns: 1fr; }
+    @media (max-width: 800px) {
+      body { padding: 8px; }
+      .app-shell { grid-template-columns: 1fr; max-width: calc(100vw - 16px); }
+      .left { padding: 16px; border-right: none; border-bottom: 1px solid rgba(255,255,255,.08); }
+      .center { padding: 20px 16px; }
+      .topbar { flex-direction: column; }
+      .topbar-meta { align-items: flex-start; }
+      .tr-bar-wrap { display: none; }
     }
   </style>
 </head>
 <body>
-  <div class="ambient" aria-hidden="true">
-    <div class="orb a" data-orb></div>
-    <div class="orb b" data-orb></div>
-    <div class="orb c" data-orb></div>
-  </div>
+<div class="app-shell">
 
-  <div class="shell">
-    <aside class="sidebar" aria-label="Navigation Sidebar">
-      <div class="brand" title="Dashboard Home">
-        <iconify-icon icon="hugeicons:home-01"></iconify-icon>
+  <!-- ════ LEFT SIDEBAR ════ -->
+  <aside class="left">
+    <div class="logo">
+      <div class="logo-mark"><iconify-icon icon="hugeicons:chart-bar-line"></iconify-icon></div>
+      <span class="logo-text">mct</span>
+    </div>
+
+    <div class="nav-label">Navigation</div>
+
+    <nav aria-label="Main tabs">
+      <button type="button" class="nav-item active" data-tab="response-rate">
+        <iconify-icon icon="hugeicons:dashboard-square-01"></iconify-icon>
+        <span>Response Rate</span>
+      </button>
+      <button type="button" class="nav-item" data-tab="themes">
+        <iconify-icon icon="hugeicons:analytics-02"></iconify-icon>
+        <span>Themes &amp; Quotes</span>
+      </button>
+      <button type="button" class="nav-item" data-tab="pinned">
+        <iconify-icon icon="hugeicons:bookmark-02"></iconify-icon>
+        <span>Pinned Quotes</span>
+        <span class="nav-badge" id="pin-badge" style="display:none;"></span>
+      </button>
+    </nav>
+
+    <div class="left-footer">
+      <strong>2024 Dataset</strong>
+      <p><code>{{ dataset_filename }}</code></p>
+    </div>
+  </aside>
+
+  <!-- ════ CENTER ════ -->
+  <main class="center">
+
+    <header class="topbar reveal">
+      <div class="topbar-title">
+        <h1>Hello, Merseycare</h1>
+        <p>Explore 2024 staff survey open-text insights — from broad participation patterns down to individual voices.</p>
+      </div>
+      <div class="topbar-meta">
+        <span class="total-label">{{ total_responses }} responses</span>
+        <span class="badge"><iconify-icon icon="hugeicons:calendar-03"></iconify-icon> 2024 dataset</span>
+        <span class="badge"><iconify-icon icon="hugeicons:file-02"></iconify-icon> {{ dataset_filename }}</span>
+      </div>
+    </header>
+
+    {% if data_error %}
+      <div class="card reveal"><div class="card-body"><span class="notice">{{ data_error }}</span></div></div>
+    {% elif missing_cols %}
+      <div class="card reveal"><div class="card-body"><span class="notice">Missing columns: {{ missing_cols|join:", " }}</span></div></div>
+    {% else %}
+
+    <!-- ══ RESPONSE RATE TAB ══ -->
+    <section class="tab-panel active" data-panel="response-rate">
+
+      <div class="rr-total reveal">
+        <div class="rr-total-icon"><iconify-icon icon="hugeicons:user-group"></iconify-icon></div>
+        <div>
+          <div class="rr-total-label">Total Responses</div>
+          <div class="rr-total-value" data-counter>{{ total_responses }}</div>
+          <div class="rr-total-sub">All rows in source dataset</div>
+        </div>
       </div>
 
-      <a class="nav-pill {% if active_tab == 'overview' %}active{% endif %}" href="?tab=overview" title="Overview">
-        <iconify-icon icon="hugeicons:home-01"></iconify-icon>
-        <span>Overview</span>
-      </a>
-
-      <a class="nav-pill {% if active_tab == 'themes' %}active{% endif %}" href="?tab=themes" title="Themes">
-        <iconify-icon icon="hugeicons:building-01"></iconify-icon>
-        <span>Themes</span>
-      </a>
-
-      <a class="nav-pill {% if active_tab == 'quotes' %}active{% endif %}" href="?tab=quotes" title="Quotation Bank">
-        <iconify-icon icon="hugeicons:view"></iconify-icon>
-        <span>Quotes</span>
-      </a>
-
-      <div class="nav-sep"></div>
-      <div class="nav-foot" title="Mersey Care Survey">
-        <iconify-icon icon="hugeicons:view"></iconify-icon>
-      </div>
-    </aside>
-
-    <main class="main">
-      <header class="topbar reveal">
-        <div class="title-wrap">
-          <h1>Mersey Care Staff Survey Dashboard</h1>
-          <p>Lightweight exploratory analytics for open-box comments and AI-assigned themes.</p>
-        </div>
-        <div class="top-chips">
-          <span class="chip"><iconify-icon icon="hugeicons:home-01"></iconify-icon> {{ active_tab|title }}</span>
-          <span class="chip"><iconify-icon icon="hugeicons:building-01"></iconify-icon> {{ total_responses }} responses</span>
-        </div>
-      </header>
-
-      {% if messages %}
-        <section class="messages reveal">
-          {% for message in messages %}
-            <div class="msg {{ message.tags }}">{{ message }}</div>
-          {% endfor %}
-        </section>
-      {% endif %}
-
-      <section class="panel reveal tilt">
-        <div class="upload-row">
-          <form method="post" enctype="multipart/form-data" style="width:100%;">
-            {% csrf_token %}
-            <input type="hidden" name="action" value="upload">
-            <div class="upload-row">
-              <div class="field" style="flex:1; min-width:220px;">
-                <label for="survey_csv">Upload Survey CSV</label>
-                <input id="survey_csv" type="file" name="survey_csv" accept=".csv" required>
-              </div>
-              <button type="submit">Upload CSV</button>
-            </div>
-          </form>
-
-          {% if uploaded_filename %}
-            <span class="chip">Current: {{ uploaded_filename }}</span>
-            <form method="post">
-              {% csrf_token %}
-              <input type="hidden" name="action" value="clear">
-              <button type="submit" class="btn-soft">Clear</button>
-            </form>
-          {% endif %}
-        </div>
-      </section>
-
-      {% if not data_loaded %}
-        <section class="empty reveal">
-          <h2>Upload a CSV to begin</h2>
-          <p>UI is ready. Upload the processed survey export and the dashboard will activate all three tabs.</p>
-        </section>
-      {% elif data_error %}
-        <section class="msg error reveal">{{ data_error }}</section>
-      {% elif missing_cols %}
-        <section class="msg error reveal">Missing expected columns: {{ missing_cols|join:", " }}.</section>
-      {% else %}
-        <section class="hero reveal tilt" id="hero-card">
+      <div class="card reveal">
+        <div class="card-head">
           <div>
-            {% if active_tab == 'overview' %}
-              <h2>Overview: where participation is balanced, and where it is not.</h2>
-              <p>Slice by demographic dimension to inspect who is represented in the survey and where follow-up engagement is needed.</p>
-            {% elif active_tab == 'themes' %}
-              <h2>Themes: what concerns and strengths surface repeatedly.</h2>
-              <p>Filter by demographic and tags to compare topic prevalence with sharper operational context.</p>
-            {% else %}
-              <h2>Quotation Bank: convert aggregates back into direct staff voice.</h2>
-              <p>Trace theme patterns to individual comments and contextual metadata for evidence-backed action planning.</p>
-            {% endif %}
-
-            <div class="hero-panels">
-              <article class="hero-stat">
-                <div class="k">Total Responses</div>
-                <div class="v" data-counter>{{ total_responses }}</div>
-              </article>
-              <article class="hero-stat">
-                <div class="k">Active Tab</div>
-                <div class="v">{{ active_tab|title }}</div>
-              </article>
-              <article class="hero-stat">
-                <div class="k">Filtered Set</div>
-                {% if active_tab == 'overview' %}
-                  <div class="v" data-counter>{{ overview_count_filtered }}</div>
-                {% elif active_tab == 'themes' %}
-                  <div class="v" data-counter>{{ theme_count_filtered }}</div>
-                {% else %}
-                  <div class="v" data-counter>{{ quote_count_filtered }}</div>
-                {% endif %}
-              </article>
-            </div>
+            <h2>Participation Distribution</h2>
+            <div class="card-sub" id="overview-chart-title">Response Mix by {{ overview_group }}</div>
           </div>
-
-          <div class="hero-note">
-            <strong>Analysis logic unchanged.</strong>
-            <small>This redesign upgrades only presentation, motion, and chart interactivity. Existing filters and tabulation behaviour are preserved.</small>
-          </div>
-        </section>
-
-        {% if active_tab == 'overview' %}
-          <section class="panel reveal">
-            <form method="get">
-              <input type="hidden" name="tab" value="overview">
-              <div class="filters">
-                <div class="field">
-                  <label for="overview_group">Staff Group Dimension</label>
-                  <select id="overview_group" name="overview_group">
-                    {% for col in demographic_cols %}
-                      <option value="{{ col }}" {% if col == overview_group %}selected{% endif %}>{{ col }}</option>
-                    {% endfor %}
-                  </select>
-                </div>
-                <div class="field" style="grid-column: span 2;">
-                  <label for="overview_vals">Values</label>
-                  <select id="overview_vals" name="overview_vals" multiple>
-                    <option value="All" {% if "All" in overview_selected_vals %}selected{% endif %}>All</option>
-                    {% for opt in overview_group_options %}
-                      <option value="{{ opt }}" {% if opt in overview_selected_vals %}selected{% endif %}>{{ opt }}</option>
-                    {% endfor %}
-                  </select>
-                </div>
-              </div>
-              <div class="actions">
-                <button type="submit">Apply Filters</button>
-                <span class="chip">
-                  {% if overview_count_filtered != total_responses %}
-                    Showing {{ overview_count_filtered }} / {{ total_responses }}
-                  {% else %}
-                    Showing {{ total_responses }} responses
-                  {% endif %}
-                </span>
-              </div>
-            </form>
-          </section>
-
-          <section class="panel grid-two reveal">
-            <div class="tilt">
-              <h3 style="margin:0 0 0.55rem;">Distribution by {{ overview_group }}</h3>
-              <div class="chart-shell"><div id="overview-chart" class="chart-wrap"></div></div>
-              {{ overview_chart_data|json_script:"overview-chart-data" }}
-            </div>
-            <div class="tilt">
-              <h3 style="margin:0 0 0.55rem;">Breakdown Table</h3>
-              <div class="table-wrap">
-                <table>
-                  <thead>
-                    <tr><th>{{ overview_group }}</th><th>Count</th><th>Percent</th></tr>
-                  </thead>
-                  <tbody>
-                    {% for row in overview_rows %}
-                      <tr><td>{{ row.label }}</td><td>{{ row.count }}</td><td>{{ row.percent }}</td></tr>
-                    {% endfor %}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          </section>
-        {% endif %}
-
-        {% if active_tab == 'themes' %}
-          <section class="panel reveal">
-            <form method="get">
-              <input type="hidden" name="tab" value="themes">
-              <div class="filters">
-                <div class="field">
-                  <label for="theme_dim">Staff Group Dimension</label>
-                  <select id="theme_dim" name="theme_dim">
-                    <option value="All" {% if theme_dim == "All" %}selected{% endif %}>All</option>
-                    {% for col in demographic_cols %}
-                      <option value="{{ col }}" {% if col == theme_dim %}selected{% endif %}>{{ col }}</option>
-                    {% endfor %}
-                  </select>
-                </div>
-                <div class="field">
-                  <label for="theme_vals">Values</label>
-                  <select id="theme_vals" name="theme_vals" multiple {% if theme_dim == "All" %}disabled{% endif %}>
-                    <option value="All" {% if "All" in theme_selected_vals %}selected{% endif %}>All</option>
-                    {% for opt in theme_options %}
-                      <option value="{{ opt }}" {% if opt in theme_selected_vals %}selected{% endif %}>{{ opt }}</option>
-                    {% endfor %}
-                  </select>
-                </div>
-                <div class="field">
-                  <label for="theme_tag">Tag Filter</label>
-                  <select id="theme_tag" name="theme_tag">
-                    <option value="All" {% if theme_tag == "All" %}selected{% endif %}>All</option>
-                    {% for tag in tags %}
-                      <option value="{{ tag }}" {% if tag == theme_tag %}selected{% endif %}>{{ tag }}</option>
-                    {% endfor %}
-                  </select>
-                </div>
-              </div>
-              <div class="actions">
-                <button type="submit">Apply Filters</button>
-                <span class="chip">
-                  {% if theme_count_filtered != total_responses %}
-                    Showing {{ theme_count_filtered }} / {{ total_responses }}
-                  {% else %}
-                    Showing {{ total_responses }} responses
-                  {% endif %}
-                </span>
-              </div>
-            </form>
-            <p class="soft-note">These themes and tags were identified by AI and may contain errors.</p>
-          </section>
-
-          <section class="panel grid-two reveal">
-            <div class="tilt">
-              <h3 style="margin:0 0 0.55rem;">Top Theme Frequency</h3>
-              <div class="chart-shell"><div id="theme-chart" class="chart-wrap"></div></div>
-              {{ theme_chart_data|json_script:"theme-chart-data" }}
-            </div>
-            <div class="tilt">
-              <h3 style="margin:0 0 0.55rem;">Theme Table</h3>
-              <div class="table-wrap">
-                <table>
-                  <thead><tr><th>Theme</th><th>Count</th><th>Percent</th></tr></thead>
-                  <tbody>
-                    {% for row in theme_rows %}
-                      <tr><td>{{ row.theme }}</td><td>{{ row.count }}</td><td>{{ row.percent }}</td></tr>
-                    {% endfor %}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          </section>
-        {% endif %}
-
-        {% if active_tab == 'quotes' %}
-          <section class="panel reveal">
-            <form method="get">
-              <input type="hidden" name="tab" value="quotes">
-              <div class="filters">
-                <div class="field">
-                  <label for="quote_dim">Staff Group Dimension</label>
-                  <select id="quote_dim" name="quote_dim">
-                    <option value="All" {% if quote_dim == "All" %}selected{% endif %}>All</option>
-                    {% for col in demographic_cols %}
-                      <option value="{{ col }}" {% if col == quote_dim %}selected{% endif %}>{{ col }}</option>
-                    {% endfor %}
-                  </select>
-                </div>
-                <div class="field">
-                  <label for="quote_vals">Values</label>
-                  <select id="quote_vals" name="quote_vals" multiple {% if quote_dim == "All" %}disabled{% endif %}>
-                    <option value="All" {% if "All" in quote_selected_vals %}selected{% endif %}>All</option>
-                    {% for opt in quote_options %}
-                      <option value="{{ opt }}" {% if opt in quote_selected_vals %}selected{% endif %}>{{ opt }}</option>
-                    {% endfor %}
-                  </select>
-                </div>
-                <div class="field">
-                  <label for="quote_theme">Theme Filter</label>
-                  <select id="quote_theme" name="quote_theme">
-                    <option value="All" {% if quote_theme == "All" %}selected{% endif %}>All</option>
-                    {% for theme in theme_cols %}
-                      <option value="{{ theme }}" {% if theme == quote_theme %}selected{% endif %}>{{ theme }}</option>
-                    {% endfor %}
-                  </select>
-                  <label for="quote_tag" style="margin-top:0.4rem;">Tag Filter</label>
-                  <select id="quote_tag" name="quote_tag">
-                    <option value="All" {% if quote_tag == "All" %}selected{% endif %}>All</option>
-                    {% for tag in tags %}
-                      <option value="{{ tag }}" {% if tag == quote_tag %}selected{% endif %}>{{ tag }}</option>
-                    {% endfor %}
-                  </select>
-                </div>
-              </div>
-              <div class="actions">
-                <button type="submit">Apply Filters</button>
-                <span class="chip">
-                  {% if quote_count_filtered != total_responses %}
-                    Showing {{ quote_count_filtered }} / {{ total_responses }}
-                  {% else %}
-                    Showing {{ total_responses }} responses
-                  {% endif %}
-                </span>
-              </div>
-            </form>
-            <p class="soft-note">Themes and tags are AI-assigned and may contain classification errors.</p>
-          </section>
-
-          <section class="panel grid-two reveal">
-            <div class="tilt">
-              <h3 style="margin:0 0 0.55rem;">Tag Mix in Current Filter</h3>
-              <div class="chart-shell"><div id="quote-tag-chart" class="chart-wrap"></div></div>
-              {{ quote_tag_chart_data|json_script:"quote-tag-chart-data" }}
-            </div>
-            <div class="tilt">
-              <h3 style="margin:0 0 0.55rem;">Filtered Quotes</h3>
-              {% if quote_table_headers and quote_table_rows %}
-                <div class="table-wrap">
-                  <table>
-                    <thead>
-                      <tr>
-                        {% for header in quote_table_headers %}
-                          <th>{{ header }}</th>
-                        {% endfor %}
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {% for row in quote_table_rows %}
-                        <tr>
-                          {% for value in row %}
-                            <td>{{ value }}</td>
-                          {% endfor %}
-                        </tr>
-                      {% endfor %}
-                    </tbody>
-                  </table>
-                </div>
-                {% if quote_table_truncated %}
-                  <p class="soft-note">Displaying first 250 rows for performance.</p>
-                {% endif %}
-              {% elif quote_count_filtered == 0 %}
-                <p class="soft-note">No comments match the selected filters.</p>
-              {% else %}
-                <p class="soft-note">Select a specific dimension/theme/tag to render quote columns.</p>
-              {% endif %}
-            </div>
-          </section>
-
-          {% if quote_index_options %}
-            <section class="panel reveal">
-              <form method="get">
-                <input type="hidden" name="tab" value="quotes">
-                <input type="hidden" name="quote_dim" value="{{ quote_dim }}">
-                <input type="hidden" name="quote_theme" value="{{ quote_theme }}">
-                <input type="hidden" name="quote_tag" value="{{ quote_tag }}">
-                {% for val in quote_selected_vals %}
-                  <input type="hidden" name="quote_vals" value="{{ val }}">
+          <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
+            <span class="filter-count fc-blue" id="overview-count">{{ overview_count_filtered }} / {{ total_responses }}</span>
+            <div class="filter-group" style="margin:0;">
+              <label for="overview_group" style="font-size:11px;">Dimension</label>
+              <select id="overview_group">
+                {% for col in demographic_cols %}
+                  <option value="{{ col }}" {% if col == overview_group %}selected{% endif %}>{{ col }}</option>
                 {% endfor %}
+              </select>
+            </div>
+          </div>
+        </div>
+        <div class="card-body" style="padding-bottom:12px;">
+          <div id="overview-chart" class="chart-wrap" style="height:520px;"></div>
+          {{ overview_chart_data|json_script:"overview-chart-data" }}
+        </div>
+      </div>
 
-                <div class="filters" style="grid-template-columns: 1fr auto;">
-                  <div class="field">
-                    <label for="context_idx">Context Viewer</label>
-                    <select id="context_idx" name="context_idx">
-                      <option value="">None</option>
-                      {% for item in quote_index_options %}
-                        <option value="{{ item.value }}" {% if item.value == context_idx %}selected{% endif %}>{{ item.label }}</option>
-                      {% endfor %}
-                    </select>
-                  </div>
-                  <div class="actions" style="margin-top:1.15rem;">
-                    <button type="submit">Load Context</button>
-                  </div>
-                </div>
-              </form>
+      <div class="card reveal">
+        <div class="card-head"><h3>Breakdown Table</h3></div>
+        <div class="table-scroll" style="max-height:320px; border-radius:0 0 var(--r-lg) var(--r-lg);">
+          <table>
+            <thead>
+              <tr>
+                <th id="overview-table-dim-col">{{ overview_group }}</th>
+                <th>Count</th>
+                <th>% of Total</th>
+              </tr>
+            </thead>
+            <tbody id="overview-table-body">
+              {% for row in overview_rows %}
+                <tr><td>{{ row.label }}</td><td>{{ row.count }}</td><td class="pct-cell">{{ row.percent }}</td></tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
 
-              {% if quote_context_pairs %}
-                <div class="context-grid">
-                  {% for pair in quote_context_pairs %}
-                    <div class="key">{{ pair.key }}</div>
-                    <div>{{ pair.value }}</div>
-                  {% endfor %}
-                </div>
-              {% endif %}
-            </section>
-          {% endif %}
-        {% endif %}
-      {% endif %}
-    </main>
+    </section>
+
+    <!-- ══ THEMES TAB ══ -->
+    <section class="tab-panel" data-panel="themes">
+
+      <!-- Filter row -->
+      <div class="card reveal">
+        <div class="card-head">
+          <div>
+            <h2>Theme Analysis</h2>
+            <div class="card-sub">Select a theme to filter the quotes below</div>
+          </div>
+          <span class="pill pill-teal"><iconify-icon icon="hugeicons:tag-01"></iconify-icon> AI-tagged</span>
+        </div>
+        <div class="card-body">
+          <div class="filter-bar">
+            <div class="filter-group">
+              <label for="theme_dim">Staff Group</label>
+              <select id="theme_dim">
+                <option value="All">All staff</option>
+                {% for col in demographic_cols %}
+                  <option value="{{ col }}">{{ col }}</option>
+                {% endfor %}
+              </select>
+            </div>
+            <span class="filter-count fc-teal" id="themes-count">{{ theme_count_filtered }} / {{ total_responses }}</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Theme list -->
+      <div class="card reveal">
+        <div class="card-head">
+          <div><h3>All Themes</h3><div class="card-sub">Ranked by mention count — click to filter quotes</div></div>
+        </div>
+        <div class="theme-list" id="theme-list">
+          {% for row in theme_rows %}
+            <div class="theme-row" data-theme="{{ row.theme }}">
+              <span class="tr-name">{{ row.theme }}</span>
+              <div class="tr-bar-wrap"><div class="tr-bar" data-pct="{{ row.bar_pct }}"></div></div>
+              <span class="tr-count">{{ row.count }}</span>
+              <span class="tr-pct">{{ row.percent }}</span>
+            </div>
+          {% endfor %}
+        </div>
+      </div>
+
+      <!-- Quotes panel (always visible) -->
+      <div class="card reveal" id="theme-quotes-card">
+        <div class="quotes-header">
+          <div class="quotes-header-left">
+            <h3>
+              <iconify-icon icon="hugeicons:comment-02" style="color:var(--teal);"></iconify-icon>
+              <span id="theme-quotes-title">All Quotes</span>
+            </h3>
+            <div style="display:flex;align-items:center;gap:7px;margin-top:3px;">
+              <div class="qh-sub" id="theme-quotes-sub">Loading…</div>
+              <button class="shuffle-icon-btn" id="shuffle-quotes-btn" title="Shuffle quotes">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <polyline points="16 3 21 3 21 8"/><line x1="4" y1="20" x2="21" y2="3"/>
+                  <polyline points="21 16 21 21 16 21"/><line x1="15" y1="15" x2="21" y2="21"/>
+                  <line x1="4" y1="4" x2="9" y2="9"/>
+                </svg>
+              </button>
+            </div>
+          </div>
+          <div class="filter-bar" style="align-items:flex-end;">
+            <div class="filter-group">
+              <label for="theme_quote_tag" style="color:var(--teal-d);">Tag filter</label>
+              <select id="theme_quote_tag" class="teal-focus">
+                <option value="All">All tags</option>
+                {% for tag in tags %}
+                  <option value="{{ tag }}">{{ tag|capfirst }}</option>
+                {% endfor %}
+              </select>
+            </div>
+            <button class="hide-tags-btn" id="hide-tags-btn" type="button">
+              <iconify-icon icon="hugeicons:tag-01"></iconify-icon>
+              Hide tags
+            </button>
+          </div>
+        </div>
+        <div id="theme-quotes-body">
+          <div class="quotes-loading"><div class="spinner"></div> Loading quotes…</div>
+        </div>
+      </div>
+
+    </section>
+
+    <!-- ══ PINNED QUOTES TAB ══ -->
+    <section class="tab-panel" data-panel="pinned">
+      <div class="privacy-notice reveal">
+        <iconify-icon icon="hugeicons:lock-01"></iconify-icon>
+        Pinned quotes and notes are private to your browser, unless downloaded.
+      </div>
+      <div class="card reveal" id="pinned-tab-card">
+        <!-- rendered by JS -->
+      </div>
+    </section>
+
+    {% endif %}
+  </main>
+</div>
+
+<!-- ── Quote detail popup (speech bubble) ── -->
+<div id="quote-popup" style="display:none;" aria-live="polite">
+  <div class="qp-header">Respondent</div>
+  <div id="qp-fields"></div>
+</div>
+
+<!-- ── Remove-all-pins confirmation modal ── -->
+<div id="remove-pins-modal" class="modal-overlay" style="display:none;" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+  <div class="modal-dialog">
+    <button class="modal-close" id="modal-close-btn" aria-label="Close dialog">
+      <iconify-icon icon="hugeicons:cancel-01"></iconify-icon>
+    </button>
+    <div class="modal-warn-icon">
+      <iconify-icon icon="hugeicons:alert-circle"></iconify-icon>
+    </div>
+    <h3 id="modal-title">Remove all pins?</h3>
+    <p>This will permanently remove all <strong id="modal-pin-count">0</strong> pinned quotes. This action cannot be reversed.</p>
+    <div class="modal-actions">
+      <button class="btn-cancel" id="modal-cancel-btn">Cancel</button>
+      <button class="btn-proceed" id="modal-proceed-btn">Proceed</button>
+    </div>
   </div>
+</div>
 
-  <script>
-    const activeTab = "{{ active_tab }}";
+<script>const INITIAL_TAB = "{{ active_tab }}";</script>
+<script>
+  /* ─── Helpers ─────────────────────────────────── */
+  function $id(id) { return document.getElementById(id); }
+  function parseJSON(id) {
+    const el = $id(id);
+    if (!el) return [];
+    try { return JSON.parse(el.textContent); } catch { return []; }
+  }
+  function esc(s) {
+    return String(s ?? '')
+      .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
 
-    function parseJSONScript(id) {
-      const el = document.getElementById(id);
-      if (!el) return [];
-      try { return JSON.parse(el.textContent); }
-      catch { return []; }
+  const QUOTE_TRUNCATE = 500;
+
+  const TAG_CLASS = {
+    suggestion: 'pill-blue',
+    urgent:     'pill-rose',
+    positive:   'pill-green',
+    negative:   'pill-amber',
+  };
+
+  /* ─── Reveal ──────────────────────────────────── */
+  function initReveal() {
+    const obs = new IntersectionObserver((entries) => {
+      entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); });
+    }, { threshold: 0.05 });
+    document.querySelectorAll('.reveal').forEach((el, i) => {
+      el.style.transitionDelay = `${Math.min(i * 40, 200)}ms`;
+      obs.observe(el);
+    });
+  }
+
+  /* ─── Counter ─────────────────────────────────── */
+  function rollCounter(el, target) {
+    const dur = 650, t0 = performance.now();
+    (function tick(now) {
+      const p = Math.min((now - t0) / dur, 1);
+      el.textContent = Math.round(target * (1 - Math.pow(1-p, 3))).toLocaleString();
+      if (p < 1) requestAnimationFrame(tick);
+    })(t0);
+  }
+
+  function initCounters() {
+    document.querySelectorAll('[data-counter]').forEach(el => {
+      const n = parseInt(el.textContent.replace(/\D/g,''), 10);
+      if (Number.isFinite(n)) rollCounter(el, n);
+    });
+  }
+
+  /* ─── Theme bars ──────────────────────────────── */
+  function animateThemeBars(root) {
+    (root || document).querySelectorAll('.tr-bar[data-pct]').forEach(bar => {
+      const pct = parseFloat(bar.dataset.pct) || 0;
+      bar.style.transform = 'scaleX(0)';
+      requestAnimationFrame(() => setTimeout(() => { bar.style.transform = `scaleX(${pct/100})`; }, 60));
+    });
+  }
+
+  /* ─── ECharts ─────────────────────────────────── */
+  const CHARTS = {};
+
+  function mkGrad(c0, c1) {
+    return new echarts.graphic.LinearGradient(1,0,0,0,[{offset:0,color:c0},{offset:1,color:c1}]);
+  }
+
+  function barOpt(data, grad, leftPad, labelWidth) {
+    return {
+      animation: true, animationDuration: 700, animationEasing: 'cubicOut',
+      grid: { left: leftPad, right: 24, top: 20, bottom: 28 },
+      tooltip: {
+        trigger: 'item', backgroundColor: '#fff', borderColor: '#e4e7ef', borderWidth: 1,
+        textStyle: { color: '#0f1624', fontSize: 13 },
+        formatter: p => { const d = data[p.dataIndex]; return `<b>${d.name}</b><br/>Count: <b>${d.value.toLocaleString()}</b>`; }
+      },
+      xAxis: { type:'value', axisLabel:{color:'#7480a0',fontSize:11}, splitLine:{lineStyle:{color:'#edf0f7'}}, axisLine:{show:false} },
+      yAxis: { type:'category', data:data.map(d=>d.name), axisLabel:{color:'#3d4760',fontSize:12,width:labelWidth,overflow:'truncate'}, axisLine:{show:false}, axisTick:{show:false} },
+      series: [{ type:'bar', barMaxWidth:16, data:data.map(d=>d.value), itemStyle:{borderRadius:[0,8,8,0],color:grad} }]
+    };
+  }
+
+  function initOverviewChart(data) {
+    const el = $id('overview-chart');
+    if (!el) return;
+    if (!CHARTS.overview) CHARTS.overview = echarts.init(el, null, {renderer:'canvas'});
+    CHARTS.overview.setOption(barOpt(data, mkGrad('#6c8fef','#3b5bdb'), 290, 270), true);
+  }
+
+  function initTagChart(data) {
+    const el = $id('quote-tag-chart');
+    if (!el || !data.length) return;
+    if (!CHARTS.tag) CHARTS.tag = echarts.init(el, null, {renderer:'canvas'});
+    CHARTS.tag.setOption({
+      animation:true, animationDuration:800,
+      tooltip:{trigger:'item',backgroundColor:'#fff',borderColor:'#e4e7ef',borderWidth:1,textStyle:{color:'#0f1624',fontSize:13},formatter:'{b}: {c} ({d}%)'},
+      legend:{bottom:4,textStyle:{color:'#7480a0',fontSize:12}},
+      series:[{type:'pie',radius:['42%','70%'],center:['50%','44%'],label:{show:false},
+        itemStyle:{borderColor:'#fff',borderWidth:3,borderRadius:6},
+        color:['#3b5bdb','#0d9488','#d97706','#e11d48'],data}]
+    }, true);
+  }
+
+  /* ─── PIN SYSTEM ──────────────────────────────── */
+  // All quote objects indexed by row_id so onclick handlers never carry JSON payloads
+  const quoteDataMap = new Map();
+  const PIN_KEY  = 'mct_pinned_v1';
+  const NOTE_KEY = 'mct_notes_v1';
+
+  function getPinned()     { try { return JSON.parse(localStorage.getItem(PIN_KEY) || '[]'); } catch { return []; } }
+  function getNotes()      { try { return JSON.parse(localStorage.getItem(NOTE_KEY) || '{}'); } catch { return {}; } }
+  function saveNote(rowId, text) {
+    const notes = getNotes();
+    if (text.trim()) notes[rowId] = text;
+    else delete notes[rowId];
+    localStorage.setItem(NOTE_KEY, JSON.stringify(notes));
+  }
+  function isPinned(rowId) { return getPinned().some(p => p.row_id === rowId); }
+
+  function savePinned(pins) {
+    localStorage.setItem(PIN_KEY, JSON.stringify(pins));
+    updatePinBadge();
+    if (document.querySelector('[data-panel="pinned"]')?.classList.contains('active')) renderPinnedTab();
+  }
+
+  function togglePin(rowId) {
+    const q = quoteDataMap.get(rowId);
+    if (!q) return false;
+    const quoteObj = { ...q, source_theme: selectedTheme || 'All' };
+    const pins = getPinned();
+    const idx  = pins.findIndex(p => p.row_id === rowId);
+    if (idx >= 0) { pins.splice(idx, 1); savePinned(pins); return false; }
+    else          { pins.push(quoteObj); savePinned(pins); return true; }
+  }
+
+  function updatePinBadge() {
+    const count = getPinned().length;
+    const badge = $id('pin-badge');
+    if (!badge) return;
+    badge.textContent = count;
+    badge.style.display = count > 0 ? 'inline-flex' : 'none';
+  }
+
+  function syncPinButtons(rowId, nowPinned) {
+    document.querySelectorAll(`[data-row-id="${rowId}"] .pin-btn`).forEach(b => {
+      b.classList.toggle('pinned', nowPinned);
+      b.title = nowPinned ? 'Unpin quote' : 'Pin quote';
+    });
+  }
+
+  /* ─── Event delegation for quote interactions ──── */
+  // Handles pin clicks and expand/collapse — no inline onclick needed
+  document.addEventListener('click', e => {
+    // Pin button
+    const pinBtn = e.target.closest('.pin-btn');
+    if (pinBtn) {
+      const card  = pinBtn.closest('[data-row-id]');
+      if (!card) return;
+      const rowId = parseInt(card.dataset.rowId, 10);
+      const nowPinned = togglePin(rowId);
+      syncPinButtons(rowId, nowPinned);
+      return;
     }
 
-    function initRevealMotion() {
-      const items = document.querySelectorAll('.reveal');
-      if (!items.length) return;
-      const io = new IntersectionObserver((entries) => {
-        entries.forEach((entry) => {
-          if (entry.isIntersecting) entry.target.classList.add('visible');
-        });
-      }, { threshold: 0.06 });
-      items.forEach((item, idx) => {
-        item.style.transitionDelay = `${Math.min(idx * 40, 240)}ms`;
-        io.observe(item);
-      });
+    // Unpin button (Pinned tab)
+    const unpinBtn = e.target.closest('.unpin-btn');
+    if (unpinBtn) {
+      const card  = unpinBtn.closest('[data-row-id]');
+      if (!card) return;
+      const rowId = parseInt(card.dataset.rowId, 10);
+      const pins  = getPinned().filter(p => p.row_id !== rowId);
+      savePinned(pins);
+      syncPinButtons(rowId, false);
+      card.style.transition = 'opacity .2s, transform .2s';
+      card.style.opacity = '0';
+      card.style.transform = 'translateX(8px)';
+      setTimeout(() => renderPinnedTab(), 220);
+      return;
     }
 
-    function initTilt() {
-      document.querySelectorAll('.tilt').forEach((el) => {
-        el.addEventListener('mousemove', (ev) => {
-          const rect = el.getBoundingClientRect();
-          const x = (ev.clientX - rect.left) / rect.width;
-          const y = (ev.clientY - rect.top) / rect.height;
-          const rx = (0.5 - y) * 3.2;
-          const ry = (x - 0.5) * 4.2;
-          el.style.transform = `perspective(900px) rotateX(${rx}deg) rotateY(${ry}deg)`;
-        });
-        el.addEventListener('mouseleave', () => {
-          el.style.transform = 'perspective(900px) rotateX(0deg) rotateY(0deg)';
-        });
-      });
+    // Show-more button
+    if (e.target.closest('#show-more-btn')) {
+      renderQuotesPage(true);
+      return;
     }
 
-    function initAmbientParallax() {
-      const orbs = document.querySelectorAll('[data-orb]');
-      if (!orbs.length) return;
-      let targetX = 0;
-      let targetY = 0;
-      let currentX = 0;
-      let currentY = 0;
+    // Hide tags toggle
+    if (e.target.closest('#hide-tags-btn')) {
+      const nowHidden = document.body.classList.toggle('hide-tags');
+      localStorage.setItem(HIDE_TAGS_KEY, nowHidden ? '1' : '0');
+      syncHideTagsBtn(nowHidden);
+      return;
+    }
 
-      window.addEventListener('mousemove', (e) => {
-        targetX = (e.clientX / window.innerWidth - 0.5) * 18;
-        targetY = (e.clientY / window.innerHeight - 0.5) * 16;
-      }, { passive: true });
-
-      function frame() {
-        currentX += (targetX - currentX) * 0.06;
-        currentY += (targetY - currentY) * 0.06;
-        orbs.forEach((orb, idx) => {
-          const factor = (idx + 1) * 0.55;
-          orb.style.transform = `translate3d(${currentX * factor}px, ${currentY * factor}px, 0)`;
-        });
-        requestAnimationFrame(frame);
+    // Quote / pinned card click — show respondent popup
+    const clickableCard = e.target.closest('.quote-card, .pinned-card');
+    if (clickableCard && !e.target.closest('.pin-btn,.unpin-btn,.quote-expand-btn,.note-toggle-btn,.pin-note,.show-more-btn,.btn-remove-all')) {
+      if (activePopupCard === clickableCard) { hideQuotePopup(); return; }
+      const rowId = parseInt(clickableCard.dataset.rowId, 10);
+      const q = quoteDataMap.get(rowId) || getPinned().find(p => p.row_id === rowId);
+      if (q?.demographics && Object.keys(q.demographics).length) {
+        showQuotePopup(clickableCard, q.demographics);
       }
-      frame();
+      return;
     }
 
-    function animateCounters() {
-      const counters = document.querySelectorAll('[data-counter]');
-      counters.forEach((el) => {
-        const target = Number(el.textContent.replace(/[^0-9.-]+/g, ''));
-        if (!Number.isFinite(target)) return;
-        const duration = 560;
-        const start = performance.now();
+    // Click outside popup closes it
+    if (activePopupCard && !e.target.closest('#quote-popup')) hideQuotePopup();
 
-        function tick(now) {
-          const t = Math.min((now - start) / duration, 1);
-          const eased = 1 - Math.pow(1 - t, 3);
-          el.textContent = Math.round(target * eased).toLocaleString();
-          if (t < 1) requestAnimationFrame(tick);
-          else el.textContent = target.toLocaleString();
+    // Note toggle button (Pinned tab)
+    const noteBtn = e.target.closest('.note-toggle-btn');
+    if (noteBtn) {
+      const wrap = noteBtn.closest('.pin-note-wrap');
+      const ta = wrap?.querySelector('.pin-note');
+      if (ta) {
+        const isOpen = ta.classList.contains('note-open');
+        ta.classList.toggle('note-open', !isOpen);
+        if (!isOpen) setTimeout(() => ta.focus(), 10);
+      }
+      return;
+    }
+
+    // Shuffle button
+    if (e.target.closest('#shuffle-quotes-btn')) {
+      reshuffleQuotes();
+      return;
+    }
+
+    // Remove all pins button (in Pinned tab)
+    if (e.target.closest('#remove-all-pins-btn')) {
+      openRemoveAllModal();
+      return;
+    }
+
+    // Modal close / cancel
+    if (e.target.closest('#modal-close-btn') || e.target.closest('#modal-cancel-btn')) {
+      closeRemoveAllModal();
+      return;
+    }
+
+    // Modal proceed (remove all)
+    if (e.target.closest('#modal-proceed-btn')) {
+      savePinned([]);
+      closeRemoveAllModal();
+      return;
+    }
+
+    // Expand/collapse quote text
+    const expandBtn = e.target.closest('.quote-expand-btn');
+    if (expandBtn) {
+      const textDiv = expandBtn.closest('.quote-text');
+      if (!textDiv) return;
+      const expanded = textDiv.dataset.expanded === '1';
+      if (expanded) {
+        textDiv.innerHTML = esc(textDiv.dataset.short) +
+          '<button class="quote-expand-btn">Show full quote</button>';
+        textDiv.dataset.expanded = '0';
+      } else {
+        textDiv.innerHTML = esc(textDiv.dataset.full) +
+          '<button class="quote-expand-btn">Show less</button>';
+        textDiv.dataset.expanded = '1';
+      }
+    }
+  });
+
+  /* ─── Note persistence & collapse ─────────────── */
+  document.addEventListener('input', e => {
+    const ta = e.target.closest('.pin-note');
+    if (ta) saveNote(parseInt(ta.dataset.rowId, 10), ta.value);
+  });
+
+  document.addEventListener('focusout', e => {
+    const ta = e.target.closest('.pin-note');
+    if (!ta) return;
+    setTimeout(() => {
+      if (document.activeElement === ta) return;
+      ta.classList.remove('note-open');
+      const wrap = ta.closest('.pin-note-wrap');
+      if (!wrap) return;
+      const hasNote = ta.value.trim().length > 0;
+      const btn = wrap.querySelector('.note-toggle-btn');
+      if (btn) {
+        btn.className = 'note-toggle-btn' + (hasNote ? ' has-note' : '');
+        btn.innerHTML = `<iconify-icon icon="${hasNote ? 'hugeicons:note-edit' : 'hugeicons:note-add'}"></iconify-icon>${hasNote ? ' Edit note' : ' Add note'}`;
+      }
+      const preview = wrap.querySelector('.note-preview');
+      if (preview) {
+        if (hasNote) { preview.textContent = ta.value; preview.style.display = 'block'; }
+        else          { preview.style.display = 'none'; }
+      }
+    }, 120);
+  });
+
+  // Hide note preview when textarea is opened
+  document.addEventListener('focusin', e => {
+    const ta = e.target.closest('.pin-note');
+    if (!ta) return;
+    const preview = ta.closest('.pin-note-wrap')?.querySelector('.note-preview');
+    if (preview) preview.style.display = 'none';
+  });
+
+  /* ─── Quote card builder ──────────────────────── */
+  function buildQuoteCard(q, delay, sourceTheme) {
+    const rowId    = q.row_id ?? -1;
+    const pinned   = isPinned(rowId);
+    const truncated = q.comment.length > QUOTE_TRUNCATE;
+    const shortText = truncated ? q.comment.slice(0, QUOTE_TRUNCATE).trimEnd() + '…' : q.comment;
+
+    // Store data so the event delegation handler can retrieve it
+    quoteDataMap.set(rowId, q);
+
+    const themeTag  = sourceTheme && sourceTheme !== 'All'
+      ? `<span class="pill pill-teal" style="font-size:11px;">${esc(sourceTheme)}</span>` : '';
+    const dimBadge  = q.dim_value
+      ? `<span class="pill pill-neutral" style="font-size:11px;">${esc(q.dim_label)}: ${esc(q.dim_value)}</span>` : '';
+    const tagBadges = (q.tags || []).map(t =>
+      `<span class="pill ${TAG_CLASS[t]||'pill-neutral'}" style="font-size:11px;">${esc(t)}</span>`).join('');
+    const meta = themeTag || dimBadge || tagBadges
+      ? `<div class="quote-meta">${themeTag}${dimBadge}${tagBadges}</div>` : '';
+
+    // quote-text uses data attrs so the expand handler can toggle without JSON in onclick
+    return `
+      <div class="quote-card" style="animation-delay:${delay}ms" data-row-id="${rowId}">
+        <button class="pin-btn${pinned ? ' pinned' : ''}" title="${pinned ? 'Unpin quote' : 'Pin quote'}">
+          <iconify-icon icon="hugeicons:bookmark-02"></iconify-icon>
+        </button>
+        <div class="quote-text"
+             data-full="${esc(q.comment)}"
+             data-short="${esc(shortText)}"
+             data-expanded="0">${esc(shortText)}${truncated ? '<button class="quote-expand-btn">Show full quote</button>' : ''}</div>
+        ${meta}
+      </div>`;
+  }
+
+  /* ─── Quote pagination state ──────────────────── */
+  let allQuotes     = [];
+  let shownCount    = 0;
+  let selectedTheme = null;
+  const PAGE_SIZE   = 10;
+
+  function renderQuotesPage(append) {
+    const body = $id('theme-quotes-body');
+    if (!body) return;
+
+    const nextBatch = allQuotes.slice(shownCount, shownCount + PAGE_SIZE);
+    shownCount += nextBatch.length;
+
+    if (!append) {
+      if (allQuotes.length === 0) {
+        body.innerHTML = '<div class="quotes-empty">No quotes match the current filters.</div>';
+        return;
+      }
+      body.innerHTML = '';
+    }
+
+    let feed = body.querySelector('.quote-feed');
+    if (!feed) { feed = document.createElement('div'); feed.className = 'quote-feed'; body.appendChild(feed); }
+
+    nextBatch.forEach((q, i) => {
+      feed.insertAdjacentHTML('beforeend', buildQuoteCard(q, append ? i * 30 : Math.min(i * 30, 270), selectedTheme));
+    });
+
+    // Remove old show-more and re-add if needed
+    body.querySelector('.show-more-wrap')?.remove();
+    const remaining = allQuotes.length - shownCount;
+    if (remaining > 0) {
+      const wrap = document.createElement('div');
+      wrap.className = 'show-more-wrap';
+      wrap.innerHTML = `
+        <button class="show-more-btn" id="show-more-btn">
+          <iconify-icon icon="hugeicons:arrow-down-01"></iconify-icon>
+          <span>Show ${Math.min(PAGE_SIZE, remaining)} more</span>
+          <span class="show-more-remaining">${remaining} remaining</span>
+        </button>`;
+      body.appendChild(wrap);
+    }
+  }
+
+  /* ─── Shuffle quotes ──────────────────────────── */
+  function shuffleArray(arr) {
+    for (let i = arr.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [arr[i], arr[j]] = [arr[j], arr[i]];
+    }
+  }
+
+  function reshuffleQuotes() {
+    if (allQuotes.length === 0) return;
+    const prevShown = Math.max(shownCount, PAGE_SIZE);
+    shuffleArray(allQuotes);
+    const body = $id('theme-quotes-body');
+    if (!body) return;
+    body.innerHTML = '';
+    shownCount = 0;
+    const feed = document.createElement('div');
+    feed.className = 'quote-feed';
+    const batch = allQuotes.slice(0, prevShown);
+    shownCount = batch.length;
+    batch.forEach((q, i) => feed.insertAdjacentHTML('beforeend', buildQuoteCard(q, Math.min(i * 20, 200), selectedTheme)));
+    body.appendChild(feed);
+    const remaining = allQuotes.length - shownCount;
+    if (remaining > 0) {
+      const wrap = document.createElement('div');
+      wrap.className = 'show-more-wrap';
+      wrap.innerHTML = `
+        <button class="show-more-btn" id="show-more-btn">
+          <iconify-icon icon="hugeicons:arrow-down-01"></iconify-icon>
+          <span>Show ${Math.min(PAGE_SIZE, remaining)} more</span>
+          <span class="show-more-remaining">${remaining} remaining</span>
+        </button>`;
+      body.appendChild(wrap);
+    }
+  }
+
+  /* ─── Remove-all-pins modal ────────────────────── */
+  function openRemoveAllModal() {
+    const modal = $id('remove-pins-modal');
+    if (!modal) return;
+    const countEl = $id('modal-pin-count');
+    if (countEl) countEl.textContent = getPinned().length;
+    modal.style.display = 'flex';
+    requestAnimationFrame(() => modal.querySelector('.modal-dialog')?.classList.add('visible'));
+  }
+
+  function closeRemoveAllModal() {
+    const modal = $id('remove-pins-modal');
+    if (modal) modal.style.display = 'none';
+  }
+
+  // Close modal and popup on Esc
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape') { closeRemoveAllModal(); hideQuotePopup(); }
+  });
+  document.addEventListener('click', e => {
+    if (e.target === $id('remove-pins-modal')) closeRemoveAllModal();
+  }, true);
+
+  /* ─── Quote detail popup ──────────────────────── */
+  let activePopupCard = null;
+
+  const POPUP_FIELDS = ['Occupation group', 'Service line', 'Pay band'];
+
+  function showQuotePopup(card, demographics) {
+    const popup = $id('quote-popup');
+    if (!popup) return;
+    const fields = POPUP_FIELDS
+      .map(k => [k, demographics[k]])
+      .filter(([, v]) => v && v !== 'nan');
+    if (!fields.length) return;
+    $id('qp-fields').innerHTML = fields.map(([k, v]) =>
+      `<div class="qp-row"><span class="qp-key">${esc(k)}</span><span class="qp-val">${esc(v)}</span></div>`
+    ).join('');
+    popup.style.display = 'block';
+    const rect = card.getBoundingClientRect();
+    const popW = 268;
+    const popH = popup.offsetHeight || 160;
+    let left = rect.left;
+    if (left + popW > window.innerWidth - 8) left = rect.right - popW;
+    if (left < 8) left = 8;
+    let top = rect.top - popH - 10;
+    if (top < 8) top = rect.bottom + 10;
+    popup.style.left = left + 'px';
+    popup.style.top  = top  + 'px';
+    activePopupCard = card;
+  }
+
+  function hideQuotePopup() {
+    const popup = $id('quote-popup');
+    if (popup) popup.style.display = 'none';
+    activePopupCard = null;
+  }
+
+  /* ─── Hide-tags toggle ─────────────────────────── */
+  const HIDE_TAGS_KEY = 'mct_hide_tags_v1';
+
+  function initHideTags() {
+    const hidden = localStorage.getItem(HIDE_TAGS_KEY) === '1';
+    document.body.classList.toggle('hide-tags', hidden);
+    syncHideTagsBtn(hidden);
+  }
+
+  function syncHideTagsBtn(hidden) {
+    const btn = $id('hide-tags-btn');
+    if (!btn) return;
+    btn.classList.toggle('active', hidden);
+    btn.innerHTML = `<iconify-icon icon="hugeicons:tag-01"></iconify-icon> ${hidden ? 'Show tags' : 'Hide tags'}`;
+  }
+
+  /* ─── Fetch & render quotes ───────────────────── */
+  function fetchThemeQuotes() {
+    const dim   = $id('theme_dim')?.value || 'All';
+    const tag   = $id('theme_quote_tag')?.value || 'All';
+    const theme = selectedTheme || 'All';
+
+    const body = $id('theme-quotes-body');
+    if (body) body.innerHTML = '<div class="quotes-loading"><div class="spinner"></div> Loading quotes…</div>';
+
+    const titleEl = $id('theme-quotes-title');
+    if (titleEl) titleEl.textContent = theme === 'All' ? 'All Quotes' : theme;
+
+    fetch(`/api/theme-quotes/?theme=${encodeURIComponent(theme)}&dim=${encodeURIComponent(dim)}&tag=${encodeURIComponent(tag)}`)
+      .then(r => r.json())
+      .then(data => {
+        if (data.error) { if (body) body.innerHTML = '<div class="quotes-empty">Error loading quotes.</div>'; return; }
+        allQuotes  = data.quotes || [];
+        shownCount = 0;
+        const sub = $id('theme-quotes-sub');
+        if (sub) sub.textContent = `${data.count.toLocaleString()} quote${data.count !== 1 ? 's' : ''}${data.truncated ? ' (sample of 200)' : ''}`;
+        renderQuotesPage(false);
+      });
+  }
+
+  /* ─── Theme rows ──────────────────────────────── */
+  function attachThemeRowHandlers() {
+    document.querySelectorAll('#theme-list .theme-row').forEach(row => {
+      row.addEventListener('click', () => {
+        const theme = row.dataset.theme;
+        if (selectedTheme === theme) {
+          row.classList.remove('selected');
+          selectedTheme = null;
+        } else {
+          document.querySelectorAll('#theme-list .theme-row.selected').forEach(r => r.classList.remove('selected'));
+          row.classList.add('selected');
+          selectedTheme = theme;
         }
-        requestAnimationFrame(tick);
+        fetchThemeQuotes();
+        setTimeout(() => $id('theme-quotes-card')?.scrollIntoView({ behavior: 'smooth', block: 'nearest' }), 80);
       });
-    }
+    });
+  }
 
-    function setupOverviewChart() {
-      const data = parseJSONScript('overview-chart-data');
-      const el = document.getElementById('overview-chart');
-      if (!el || !data.length) return;
-      const chart = echarts.init(el);
-      chart.setOption({
-        animationDuration: 900,
-        animationEasing: 'cubicOut',
-        grid: { left: 58, right: 20, top: 28, bottom: 72 },
-        tooltip: {
-          trigger: 'axis',
-          axisPointer: { type: 'shadow' },
-          formatter: (params) => {
-            const rec = data[params[0].dataIndex];
-            return `${rec.name}<br/>Count: <b>${rec.value}</b><br/>Share: <b>${rec.percent}%</b>`;
+  /* ─── Themes dim filter ───────────────────────── */
+  function setupThemesFilter() {
+    const sel = $id('theme_dim');
+    if (!sel) return;
+    sel.addEventListener('change', () => {
+      fetch(`/api/themes/?dim=${encodeURIComponent(sel.value)}`)
+        .then(r => r.json())
+        .then(data => {
+          if (data.error) return;
+          const c = $id('themes-count');
+          if (c) c.textContent = `${data.count.toLocaleString()} / ${data.total.toLocaleString()}`;
+          const fsv = $id('filtered-set-value');
+          if (fsv) fsv.dataset.themes = data.count;
+          selectedTheme = null;
+          const list = $id('theme-list');
+          if (list) {
+            list.innerHTML = data.theme_rows.map(r => `
+              <div class="theme-row" data-theme="${esc(r.theme)}">
+                <span class="tr-name">${esc(r.theme)}</span>
+                <div class="tr-bar-wrap"><div class="tr-bar" data-pct="${r.bar_pct}"></div></div>
+                <span class="tr-count">${r.count.toLocaleString()}</span>
+                <span class="tr-pct">${esc(r.percent)}</span>
+              </div>`).join('');
+            attachThemeRowHandlers();
+            animateThemeBars(list);
           }
-        },
-        xAxis: {
-          type: 'category',
-          data: data.map((d) => d.name),
-          axisLabel: { rotate: 25, color: '#55617b' },
-          axisTick: { show: false }
-        },
-        yAxis: { type: 'value', axisLabel: { color: '#55617b' } },
-        series: [{
-          type: 'bar',
-          data: data.map((d) => d.value),
-          barMaxWidth: 44,
-          itemStyle: {
-            borderRadius: [10, 10, 0, 0],
-            color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
-              { offset: 0, color: '#718cff' },
-              { offset: 1, color: '#3f58cc' }
-            ])
-          },
-          emphasis: { focus: 'self' }
-        }]
-      });
-      window.addEventListener('resize', () => chart.resize());
+          fetchThemeQuotes();
+        });
+    });
+  }
+
+  /* ─── Tag filter ──────────────────────────────── */
+  function setupTagFilter() {
+    const sel = $id('theme_quote_tag');
+    if (sel) sel.addEventListener('change', fetchThemeQuotes);
+  }
+
+  /* ─── Overview filter ─────────────────────────── */
+  function setupOverviewFilter() {
+    const sel = $id('overview_group');
+    if (!sel) return;
+    sel.addEventListener('change', () => {
+      const dim = sel.value;
+      $id('overview-chart-title').textContent = `Response Mix by ${dim}`;
+      $id('overview-table-dim-col').textContent = dim;
+      fetch(`/api/overview/?dim=${encodeURIComponent(dim)}`)
+        .then(r => r.json())
+        .then(data => {
+          if (data.error) return;
+          const c = $id('overview-count');
+          if (c) c.textContent = `${data.count.toLocaleString()} / ${data.total.toLocaleString()}`;
+          const fsv = $id('filtered-set-value');
+          if (fsv) { fsv.dataset.responseRate = data.count; fsv.textContent = data.count.toLocaleString(); }
+          initOverviewChart(data.chart_data);
+          const tbody = $id('overview-table-body');
+          if (tbody) tbody.innerHTML = data.table_rows.map(r =>
+            `<tr><td>${esc(r.label)}</td><td>${r.count.toLocaleString()}</td><td class="pct-cell">${esc(r.percent)}</td></tr>`
+          ).join('');
+        });
+    });
+  }
+
+  /* ─── Pinned tab renderer ─────────────────────── */
+  function renderPinnedTab() {
+    const card = $id('pinned-tab-card');
+    if (!card) return;
+    const pins = getPinned();
+
+    if (pins.length === 0) {
+      card.innerHTML = `
+        <div class="empty-state">
+          <div class="empty-state-icon">
+            <iconify-icon icon="hugeicons:bookmark-02"></iconify-icon>
+          </div>
+          <h3>No pinned quotes yet</h3>
+          <p>While exploring themes, hover over any quote and click the pin icon to save it here.</p>
+          <div class="hint-chip">
+            <iconify-icon icon="hugeicons:analytics-02"></iconify-icon>
+            Pin quotes from the Themes tab
+          </div>
+        </div>`;
+      return;
     }
 
-    function setupThemeChart() {
-      const data = parseJSONScript('theme-chart-data');
-      const el = document.getElementById('theme-chart');
-      if (!el || !data.length) return;
-      const chart = echarts.init(el);
-      chart.setOption({
-        animationDuration: 900,
-        animationEasing: 'quarticOut',
-        grid: { left: 188, right: 24, top: 20, bottom: 22 },
-        tooltip: { trigger: 'axis', axisPointer: { type: 'shadow' } },
-        xAxis: { type: 'value', axisLabel: { color: '#55617b' } },
-        yAxis: {
-          type: 'category',
-          data: data.map((d) => d.name),
-          axisLabel: { color: '#55617b', width: 170, overflow: 'truncate' }
-        },
-        series: [{
-          type: 'bar',
-          data: data.map((d) => d.value),
-          barMaxWidth: 18,
-          itemStyle: {
-            borderRadius: [0, 9, 9, 0],
-            color: new echarts.graphic.LinearGradient(1, 0, 0, 0, [
-              { offset: 0, color: '#4fbf95' },
-              { offset: 1, color: '#2e7b62' }
-            ])
-          }
-        }]
+    const notes = getNotes();
+    // Register pinned quotes in map so popup can find demographics
+    pins.forEach(q => quoteDataMap.set(q.row_id, q));
+    const cardHTML = pins.map((q, i) => {
+      const themeTag  = q.source_theme && q.source_theme !== 'All'
+        ? `<span class="pill pill-teal" style="font-size:11px;">${esc(q.source_theme)}</span>` : '';
+      const dimBadge  = q.dim_value
+        ? `<span class="pill pill-neutral" style="font-size:11px;">${esc(q.dim_label)}: ${esc(q.dim_value)}</span>` : '';
+      const tagBadges = (q.tags || []).map(t =>
+        `<span class="pill ${TAG_CLASS[t]||'pill-neutral'}" style="font-size:11px;">${esc(t)}</span>`).join('');
+      const meta = themeTag || dimBadge || tagBadges
+        ? `<div class="quote-meta">${themeTag}${dimBadge}${tagBadges}</div>` : '';
+      const noteVal = notes[q.row_id] || '';
+      return `
+        <div class="pinned-card" style="animation-delay:${Math.min(i*40,280)}ms" data-row-id="${q.row_id}">
+          <div class="pinned-card-top">
+            <div class="pinned-card-text">${esc(q.comment)}</div>
+            <button class="unpin-btn" title="Unpin this quote">
+              <iconify-icon icon="hugeicons:bookmark-remove-01"></iconify-icon>
+            </button>
+          </div>
+          ${meta}
+          <div class="pin-note-wrap">
+            <button class="note-toggle-btn${noteVal ? ' has-note' : ''}" data-row-id="${q.row_id}">
+              <iconify-icon icon="${noteVal ? 'hugeicons:note-edit' : 'hugeicons:note-add'}"></iconify-icon>
+              ${noteVal ? 'Edit note' : 'Add note'}
+            </button>
+            ${noteVal ? `<div class="note-preview">${esc(noteVal)}</div>` : '<div class="note-preview" style="display:none;"></div>'}
+            <textarea class="pin-note" data-row-id="${q.row_id}" placeholder="Write a note…">${esc(noteVal)}</textarea>
+          </div>
+        </div>`;
+    }).join('');
+
+    card.innerHTML = `
+      <div class="card-head">
+        <div>
+          <h2>Pinned Quotes</h2>
+          <div class="card-sub">${pins.length} quote${pins.length !== 1 ? 's' : ''} saved</div>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px;">
+          <span class="pill pill-neutral">
+            <iconify-icon icon="hugeicons:bookmark-02"></iconify-icon>
+            ${pins.length} pinned
+          </span>
+          <button class="btn-remove-all" id="remove-all-pins-btn">
+            <iconify-icon icon="hugeicons:delete-02"></iconify-icon>
+            Remove all
+          </button>
+        </div>
+      </div>
+      <div class="pinned-feed">${cardHTML}</div>`;
+  }
+
+  /* ─── Tab switching ───────────────────────────── */
+  let themesInitialised = false;
+
+  function initTabs() {
+    const buttons = [...document.querySelectorAll('[data-tab]')];
+    const panels  = [...document.querySelectorAll('[data-panel]')];
+
+    function activate(tab) {
+      buttons.forEach(b => b.classList.toggle('active', b.dataset.tab === tab));
+      panels.forEach(p => {
+        const wasHidden = !p.classList.contains('active');
+        p.classList.toggle('active', p.dataset.panel === tab);
+        if (wasHidden && p.dataset.panel === tab) {
+          p.querySelectorAll('.reveal').forEach(el => {
+            el.classList.remove('visible');
+            requestAnimationFrame(() => el.classList.add('visible'));
+          });
+        }
       });
-      window.addEventListener('resize', () => chart.resize());
+      if (tab === 'themes') {
+        setTimeout(() => animateThemeBars($id('theme-list')), 80);
+        if (!themesInitialised) { themesInitialised = true; fetchThemeQuotes(); }
+      }
+      if (tab === 'pinned') renderPinnedTab();
+      requestAnimationFrame(() => Object.values(CHARTS).forEach(c => c?.resize()));
     }
 
-    function setupQuoteTagChart() {
-      const data = parseJSONScript('quote-tag-chart-data');
-      const el = document.getElementById('quote-tag-chart');
-      if (!el || !data.length) return;
-      const chart = echarts.init(el);
-      chart.setOption({
-        animationDuration: 920,
-        tooltip: { trigger: 'item' },
-        legend: { bottom: 6, textStyle: { color: '#55617b' } },
-        series: [{
-          type: 'pie',
-          radius: ['44%', '75%'],
-          center: ['50%', '46%'],
-          itemStyle: { borderRadius: 7, borderColor: '#fff', borderWidth: 2 },
-          label: { formatter: '{b}: {c}' },
-          data
-        }]
-      });
-      window.addEventListener('resize', () => chart.resize());
-    }
+    buttons.forEach(b => b.addEventListener('click', () => activate(b.dataset.tab)));
+    const tabMap = { overview: 'response-rate', quotes: 'themes' };
+    activate(tabMap[INITIAL_TAB] || INITIAL_TAB || 'response-rate');
+  }
 
-    initRevealMotion();
-    initTilt();
-    initAmbientParallax();
-    animateCounters();
+  /* ─── Boot ────────────────────────────────────── */
+  initReveal();
+  initCounters();
+  initOverviewChart(parseJSON('overview-chart-data'));
+  setupOverviewFilter();
+  setupThemesFilter();
+  attachThemeRowHandlers();
+  setupTagFilter();
+  updatePinBadge();
+  initHideTags();
+  initTabs();
 
-    if (activeTab === 'overview') setupOverviewChart();
-    if (activeTab === 'themes') setupThemeChart();
-    if (activeTab === 'quotes') setupQuoteTagChart();
-  </script>
+  window.addEventListener('resize', () => Object.values(CHARTS).forEach(c => c?.resize()));
+</script>
 </body>
 </html>

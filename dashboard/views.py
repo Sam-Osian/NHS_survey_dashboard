@@ -1,10 +1,8 @@
 from pathlib import Path
-import tempfile
-import uuid
 
 import pandas as pd
-from django.contrib import messages
-from django.shortcuts import redirect, render
+from django.http import JsonResponse
+from django.shortcuts import render
 
 RENAME_MAP = {
     "occupation_group": "Occupation group",
@@ -32,31 +30,8 @@ DEMOGRAPHIC_COLS = [
 
 TAGS = ["suggestion", "urgent", "positive", "negative"]
 TRUTHY_VALUES = {"yes", "true", "1"}
-VALID_TABS = {"overview", "themes", "quotes"}
-UPLOAD_DIR = Path(tempfile.gettempdir()) / "nhs_survey_dash_uploads"
-UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
-
-
-def _remove_upload(path_value: str | None) -> None:
-    if not path_value:
-        return
-
-    try:
-        Path(path_value).unlink(missing_ok=True)
-    except OSError:
-        pass
-
-
-def _save_upload(uploaded_file, session_key: str | None) -> Path:
-    suffix = Path(uploaded_file.name).suffix or ".csv"
-    token = session_key or uuid.uuid4().hex
-    destination = UPLOAD_DIR / f"{token}_{uuid.uuid4().hex}{suffix}"
-
-    with destination.open("wb") as output_file:
-        for chunk in uploaded_file.chunks():
-            output_file.write(chunk)
-
-    return destination
+VALID_TABS = {"overview", "themes"}
+DATASET_PATH = Path(__file__).resolve().parent.parent / "data" / "outputs" / "2024" / "comments_2024.csv"
 
 
 def _load_data(csv_path: Path) -> tuple[pd.DataFrame, list[str]]:
@@ -98,35 +73,6 @@ def _truthy_mask(series: pd.Series) -> pd.Series:
 
 
 def home(request):
-    if request.method == "POST":
-        action = request.POST.get("action", "upload")
-        existing_path = request.session.get("uploaded_csv_path")
-
-        if action == "clear":
-            _remove_upload(existing_path)
-            request.session.pop("uploaded_csv_path", None)
-            messages.info(request, "Uploaded CSV cleared.")
-            return redirect("home")
-
-        uploaded_csv = request.FILES.get("survey_csv")
-        if not uploaded_csv:
-            messages.error(request, "Please choose a CSV file to upload.")
-            return redirect("home")
-
-        if not uploaded_csv.name.lower().endswith(".csv"):
-            messages.error(request, "Only .csv files are supported.")
-            return redirect("home")
-
-        if request.session.session_key is None:
-            request.session.save()
-
-        saved_path = _save_upload(uploaded_csv, request.session.session_key)
-        _remove_upload(existing_path)
-        request.session["uploaded_csv_path"] = str(saved_path)
-
-        messages.success(request, f"Uploaded {uploaded_csv.name}.")
-        return redirect("home")
-
     active_tab = request.GET.get("tab", "overview")
     if active_tab not in VALID_TABS:
         active_tab = "overview"
@@ -134,7 +80,7 @@ def home(request):
     context: dict = {
         "active_tab": active_tab,
         "data_loaded": False,
-        "uploaded_filename": None,
+        "dataset_filename": DATASET_PATH.name,
         "missing_cols": [],
         "data_error": None,
         "demographic_cols": DEMOGRAPHIC_COLS,
@@ -169,20 +115,12 @@ def home(request):
         "quote_context_pairs": [],
     }
 
-    csv_path_value = request.session.get("uploaded_csv_path")
-    if not csv_path_value:
+    if not DATASET_PATH.exists():
+        context["data_error"] = f"Dataset not found at {DATASET_PATH}."
         return render(request, "dashboard/home.html", context)
-
-    csv_path = Path(csv_path_value)
-    if not csv_path.exists():
-        request.session.pop("uploaded_csv_path", None)
-        messages.warning(request, "Saved upload was not found. Please upload your CSV again.")
-        return render(request, "dashboard/home.html", context)
-
-    context["uploaded_filename"] = csv_path.name
 
     try:
-        df, missing_cols = _load_data(csv_path)
+        df, missing_cols = _load_data(DATASET_PATH)
     except Exception as exc:
         context["data_error"] = f"Could not parse CSV: {exc}"
         return render(request, "dashboard/home.html", context)
@@ -306,6 +244,9 @@ def home(request):
         )
 
     theme_rows.sort(key=lambda item: item["count"], reverse=True)
+    max_theme_count = theme_rows[0]["count"] if theme_rows else 1
+    for row in theme_rows:
+        row["bar_pct"] = round((row["count"] / max_theme_count) * 100, 1) if max_theme_count else 0
     theme_chart_data = [
         {"name": row["theme"], "value": row["count"]}
         for row in theme_rows[:15]
@@ -447,3 +388,137 @@ def home(request):
     )
 
     return render(request, "dashboard/home.html", context)
+
+
+# ── JSON API views (used by client-side live filters) ──────────────────────
+
+def _build_overview_data(df, group_col, total_responses):
+    counts = df[group_col].dropna().astype(str).value_counts().sort_index()
+    rows = []
+    chart = []
+    for label, count in counts.items():
+        c = int(count)
+        pct = (c / total_responses) if total_responses else 0
+        rows.append({"label": label, "count": c, "percent": f"{pct:.1%}"})
+        chart.append({"name": label, "value": c, "percent": round(pct * 100, 2)})
+    return {"chart_data": chart, "table_rows": rows, "count": len(df)}
+
+
+def _build_themes_data(df, theme_cols, total):
+    rows = []
+    for col in theme_cols:
+        count = int(_truthy_mask(df[col]).sum()) if col in df.columns else 0
+        pct = (count / total) if total else 0
+        rows.append({"theme": col, "count": count, "percent": f"{pct:.1%}"})
+    rows.sort(key=lambda r: r["count"], reverse=True)
+    max_c = rows[0]["count"] if rows else 1
+    for r in rows:
+        r["bar_pct"] = round((r["count"] / max_c) * 100, 1) if max_c else 0
+    chart = [{"name": r["theme"], "value": r["count"]} for r in rows[:15]]
+    return {"chart_data": chart, "theme_rows": rows, "count": total}
+
+
+def api_overview(request):
+    if not DATASET_PATH.exists():
+        return JsonResponse({"error": "Dataset not found."}, status=404)
+    try:
+        df, missing = _load_data(DATASET_PATH)
+    except Exception as exc:
+        return JsonResponse({"error": str(exc)}, status=500)
+    if missing:
+        return JsonResponse({"error": f"Missing columns: {', '.join(missing)}"}, status=400)
+
+    group_col = request.GET.get("dim", DEMOGRAPHIC_COLS[0])
+    if group_col not in DEMOGRAPHIC_COLS:
+        group_col = DEMOGRAPHIC_COLS[0]
+
+    total = len(df)
+    data = _build_overview_data(df, group_col, total)
+    data["total"] = total
+    return JsonResponse(data)
+
+
+def api_themes(request):
+    if not DATASET_PATH.exists():
+        return JsonResponse({"error": "Dataset not found."}, status=404)
+    try:
+        df, missing = _load_data(DATASET_PATH)
+    except Exception as exc:
+        return JsonResponse({"error": str(exc)}, status=500)
+    if missing:
+        return JsonResponse({"error": f"Missing columns: {', '.join(missing)}"}, status=400)
+
+    all_cols = df.columns.tolist()
+    theme_cols = [c for c in all_cols if c not in DEMOGRAPHIC_COLS + ["Comment"] + TAGS]
+    total = len(df)
+
+    dim = request.GET.get("dim", "All")
+    if dim not in ["All"] + DEMOGRAPHIC_COLS:
+        dim = "All"
+
+    filtered = df.copy()
+    if dim != "All":
+        filtered = filtered[filtered[dim].notna()]
+
+    data = _build_themes_data(filtered, theme_cols, len(filtered))
+    data["total"] = total
+    return JsonResponse(data)
+
+def api_theme_quotes(request):
+    if not DATASET_PATH.exists():
+        return JsonResponse({"error": "Dataset not found."}, status=404)
+    try:
+        df, missing = _load_data(DATASET_PATH)
+    except Exception as exc:
+        return JsonResponse({"error": str(exc)}, status=500)
+    if missing:
+        return JsonResponse({"error": f"Missing columns: {', '.join(missing)}"}, status=400)
+
+    theme = request.GET.get("theme", "All")
+    dim = request.GET.get("dim", "All")
+    tag = request.GET.get("tag", "All")
+
+    all_cols = df.columns.tolist()
+    theme_cols = [c for c in all_cols if c not in DEMOGRAPHIC_COLS + ["Comment"] + TAGS]
+
+    filtered = df.copy()
+
+    # Filter by theme only when a specific theme is selected
+    if theme != "All":
+        if theme not in theme_cols:
+            return JsonResponse({"quotes": [], "count": 0, "truncated": False})
+        filtered = filtered[_truthy_mask(filtered[theme])]
+
+    if dim != "All" and dim in DEMOGRAPHIC_COLS and dim in filtered.columns:
+        filtered = filtered[filtered[dim].notna()]
+
+    if tag != "All" and tag in TAGS and tag in filtered.columns:
+        filtered = filtered[_truthy_mask(filtered[tag])]
+
+    total_filtered = len(filtered)
+    sample = filtered.head(200)
+
+    quotes = []
+    for idx, row in sample.iterrows():
+        comment = str(row.get("Comment", "")).strip()
+        if not comment:
+            continue
+        active_tags = [t for t in TAGS if t in row and pd.notna(row[t]) and str(row[t]).strip().lower() in TRUTHY_VALUES]
+        dim_value = ""
+        if dim != "All" and dim in row and pd.notna(row[dim]):
+            dim_value = str(row[dim]).strip()
+        demographics = {
+            col: str(row[col]).strip()
+            for col in DEMOGRAPHIC_COLS
+            if col in row and pd.notna(row[col]) and str(row[col]).strip() not in ("", "nan")
+        }
+        quotes.append({
+            "row_id": int(idx),
+            "comment": comment,
+            "dim_label": dim if dim != "All" else "",
+            "dim_value": dim_value,
+            "tags": active_tags,
+            "demographics": demographics,
+        })
+
+    return JsonResponse({"quotes": quotes, "count": total_filtered, "truncated": total_filtered > 200})
