@@ -53,6 +53,27 @@
     ::selection { background: var(--selection-bg); color: var(--selection-ink); }
     ::-moz-selection { background: var(--selection-bg); color: var(--selection-ink); }
 
+    /* ── Global Scrollbar ─────────────────────────── */
+    html {
+      scrollbar-width: thin;
+      scrollbar-color: #9aa7bd #e6ebf3;
+    }
+    html::-webkit-scrollbar {
+      width: 15px;
+      height: 15px;
+    }
+    html::-webkit-scrollbar-track {
+      background: #e6ebf3;
+    }
+    html::-webkit-scrollbar-thumb {
+      background: linear-gradient(180deg, #b6c0d1, #8f9eb7);
+      border-radius: 999px;
+      border: 3px solid #e6ebf3;
+    }
+    html::-webkit-scrollbar-thumb:hover {
+      background: linear-gradient(180deg, #a6b3c8, #7e8fab);
+    }
+
     body {
       font-family: "Inter", system-ui, sans-serif;
       font-size: 14px;
@@ -89,10 +110,9 @@
 
     .logo {
       display: flex;
-      align-items: center;
+      align-items: flex-start;
       gap: 10px;
-      padding: 0 8px 22px;
-      border-bottom: 1px solid rgba(255,255,255,.08);
+      padding: 0 8px 16px;
       margin-bottom: 14px;
     }
 
@@ -105,12 +125,15 @@
     }
     .logo-mark img { width: 100%; height: 100%; display: block; }
 
-    .logo-text { font-weight: 800; font-size: 1.25rem; letter-spacing: -0.03em; color: #fff; }
+    .logo-stack { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+    .logo-text { font-weight: 800; font-size: 1.25rem; letter-spacing: -0.03em; color: #fff; line-height: 1.1; }
 
     .nav-label {
       font-size: 10px; font-weight: 700; letter-spacing: .1em;
       text-transform: uppercase; color: rgba(255,255,255,.3);
-      padding: 8px 10px 6px;
+      margin-top: 6px;
+      padding: 10px 10px 6px;
+      border-top: 1px solid rgba(255,255,255,.08);
     }
 
     .nav-item {
@@ -121,6 +144,11 @@
       background: transparent; cursor: pointer; text-align: left;
       transition: background var(--transition), color var(--transition), border-color var(--transition);
       width: 100%; position: relative;
+    }
+    nav[aria-label="Main tabs"] {
+      margin-top: 0;
+      padding-top: 0;
+      border-top: none;
     }
 
     .nav-item iconify-icon { font-size: 17px; flex-shrink: 0; }
@@ -141,15 +169,30 @@
       padding: 0 6px; line-height: 1;
     }
 
-    .left-footer {
-      margin-top: auto; padding: 14px;
-      background: rgba(255,255,255,.05);
-      border: 1px solid rgba(255,255,255,.08); border-radius: var(--r-lg);
+    .logo-credit {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      text-decoration: none;
+      color: rgba(255,255,255,.5);
+      font-size: 10.5px;
+      font-weight: 500;
+      transition: color var(--transition), opacity var(--transition);
+      opacity: .9;
+      width: fit-content;
     }
-
-    .left-footer strong { color: rgba(255,255,255,.8); font-size: 12.5px; }
-    .left-footer p { color: rgba(255,255,255,.38); font-size: 11.5px; margin-top: 4px; line-height: 1.5; }
-    .left-footer code { color: rgba(255,255,255,.55); font-size: 10.5px; word-break: break-all; }
+    .logo-credit:hover {
+      color: rgba(255,255,255,.78);
+      opacity: 1;
+    }
+    .logo-credit img {
+      width: 11px;
+      height: 11px;
+      object-fit: contain;
+      border-radius: 2px;
+      flex-shrink: 0;
+      opacity: .92;
+    }
 
     /* ── Center ────────────────────────────────────── */
     .center {
@@ -819,7 +862,13 @@
   <aside class="left">
     <div class="logo">
       <div class="logo-mark"><img src="{% static 'branding/merseyvoice-logo.svg' %}" alt="MerseyVoice logo"></div>
-      <span class="logo-text">MerseyVoice</span>
+      <div class="logo-stack">
+        <span class="logo-text">MerseyVoice</span>
+        <a class="logo-credit" href="https://oreliandata.co.uk" target="_blank" rel="noopener noreferrer">
+          <img src="{% static 'branding/orelian_logo.webp' %}" alt="Orelian logo">
+          <span>Developed by Orelian</span>
+        </a>
+      </div>
     </div>
 
     <div class="nav-label">Navigation</div>
