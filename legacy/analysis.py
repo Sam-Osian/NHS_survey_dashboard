@@ -67,7 +67,7 @@ Your task is to split an open-text survey response from an NHS staff survey into
 
 1. **Preserve Originality**: Do not rephrase, summarise, or alter the wording of the response in any way. Copy the text exactly as it appears, adding only \n characters where necessary.
 2. **Split by Topic, Not Just Sentences**: Insert a \n character **only** when the respondent clearly transitions to a **new, distinct topic**. **Sentences discussing different aspects of the same issue should not be split.**
-3. **Avoid Over-Splitting**: A topic **is not just a sentence—it is a concept.** Do not separate sentences just because they present different details. **If two sentences naturally flow together, they should remain together.**
+3. **Avoid Over-Splitting**: A topic **is not just a sentence–it is a concept.** Do not separate sentences just because they present different details. **If two sentences naturally flow together, they should remain together.**
 4. **No Commentary**: Do not add headings, summaries, or any analysis. Your output should be the original text with \n characters added where appropriate.
 
 ---
@@ -85,12 +85,12 @@ My colleagues are very helpful."
 ---
 ### **Example 2: When only SOME splitting is needed**
 --Original:  
-"The workload has been intense, and deadlines keep piling up. It feels like management doesn’t always see how much we’re juggling, which adds to the pressure. My team, though, has been fantastic—we support each other and keep things running even when it’s stressful."
+"The workload has been intense, and deadlines keep piling up. It feels like management doesn’t always see how much we’re juggling, which adds to the pressure. My team, though, has been fantastic–we support each other and keep things running even when it’s stressful."
 
 --Correct Output:  
 "The workload has been intense, and deadlines keep piling up. It feels like management doesn’t always see how much we’re juggling, which adds to the pressure.  
 
-My team, though, has been fantastic—we support each other and keep things running even when it’s stressful."
+My team, though, has been fantastic–we support each other and keep things running even when it’s stressful."
 
 ---
 ### **Example 3: A Response That Should NOT Be Split at All**

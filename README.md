@@ -30,9 +30,9 @@ Command name: `staff-survey`
 
 ### Stages
 
-1. `verify` — validates year input contract (and baseline output integrity for 2024).
-2. `squash` — merges yearly demographic source files into one squashed dataset.
-3. `analyse` — runs analysis for the year.
+1. `verify` – validates year input contract (and baseline output integrity for 2024).
+2. `squash` – merges yearly demographic source files into one squashed dataset.
+3. `analyse` – runs analysis for the year.
 
 `--year` is required for all stages.
 

@@ -1,8 +1,12 @@
 from pathlib import Path
+import json
 
 import pandas as pd
 from django.http import JsonResponse
 from django.shortcuts import render
+from django.views.decorators.http import require_http_methods
+
+from .models import UserDashboardState
 
 RENAME_MAP = {
     "occupation_group": "Occupation group",
@@ -525,3 +529,38 @@ def api_theme_quotes(request):
         })
 
     return JsonResponse({"quotes": quotes, "count": total_filtered, "truncated": total_filtered > 200})
+
+
+@require_http_methods(["GET", "POST"])
+def api_user_state(request):
+    state, _ = UserDashboardState.objects.get_or_create(user=request.user)
+
+    if request.method == "GET":
+        return JsonResponse(
+            {
+                "pins": state.pins if isinstance(state.pins, list) else [],
+                "notes": state.notes if isinstance(state.notes, dict) else {},
+                "hide_tags": bool(state.hide_tags),
+            }
+        )
+
+    try:
+        payload = json.loads(request.body.decode("utf-8") or "{}")
+    except json.JSONDecodeError:
+        return JsonResponse({"error": "Invalid JSON payload."}, status=400)
+
+    if "pins" in payload:
+        if not isinstance(payload["pins"], list):
+            return JsonResponse({"error": "`pins` must be a list."}, status=400)
+        state.pins = payload["pins"]
+
+    if "notes" in payload:
+        if not isinstance(payload["notes"], dict):
+            return JsonResponse({"error": "`notes` must be an object."}, status=400)
+        state.notes = payload["notes"]
+
+    if "hide_tags" in payload:
+        state.hide_tags = bool(payload["hide_tags"])
+
+    state.save()
+    return JsonResponse({"ok": True})

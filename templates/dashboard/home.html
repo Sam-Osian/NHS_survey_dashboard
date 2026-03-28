@@ -35,6 +35,10 @@
       --rose-l:    #ffe4e6;
       --gold:      #b45309;
       --gold-l:    #fef9c3;
+      --highlight-bg: #ffd166;
+      --highlight-ink: #2a2000;
+      --selection-bg: #ffb703;
+      --selection-ink: #1f1600;
       --r-xl:  20px;
       --r-lg:  16px;
       --r-md:  12px;
@@ -46,6 +50,8 @@
     }
 
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    ::selection { background: var(--selection-bg); color: var(--selection-ink); }
+    ::-moz-selection { background: var(--selection-bg); color: var(--selection-ink); }
 
     body {
       font-family: "Inter", system-ui, sans-serif;
@@ -164,6 +170,16 @@
 
     .topbar-meta { display: flex; flex-direction: column; align-items: flex-end; gap: 6px; flex-shrink: 0; padding-top: 4px; }
     .topbar-meta .total-label { font-size: 12.5px; color: var(--ink-3); font-weight: 500; }
+    .topbar-actions { display: flex; gap: 8px; flex-wrap: wrap; justify-content: flex-end; }
+    .topbar-link {
+      display: inline-flex; align-items: center; gap: 5px;
+      font-size: 12px; font-weight: 600; color: var(--ink-2);
+      text-decoration: none; padding: 4px 10px; border-radius: 999px;
+      border: 1px solid var(--border); background: var(--surface);
+      cursor: pointer;
+    }
+    .topbar-link:hover { color: var(--accent); border-color: rgba(59,91,219,.3); }
+    .topbar-link-form { margin: 0; }
 
     .badge {
       display: inline-flex; align-items: center; gap: 6px;
@@ -641,7 +657,7 @@
     .keyword-reset-btn:hover { background: var(--rose-l); color: var(--rose); border-color: rgba(225,29,72,.2); }
 
     /* ── Keyword highlight in quote text ────────────── */
-    .kw-hl { font-weight: 700; color: var(--ink); background: rgba(13,148,136,.12); border-radius: 2px; padding: 0 1px; }
+    .kw-hl { font-weight: 700; color: var(--highlight-ink); background: var(--highlight-bg); border-radius: 2px; padding: 0 1px; box-shadow: inset 0 -1px 0 rgba(0,0,0,.12); }
 
     /* ── Note preview text ─────────────────────────── */
     .note-preview {
@@ -835,11 +851,18 @@
 
     <header class="topbar reveal">
       <div class="topbar-title">
-        <h1>Hello, MerseyVoice</h1>
-        <p>Explore staff survey open-text insights — from broad participation patterns down to individual voices.</p>
+        <h1>Hello, {{ request.user.first_name|default:request.user.username }}</h1>
+        <p>Explore staff survey open-text insights – from broad participation patterns down to individual voices.</p>
       </div>
       <div class="topbar-meta">
         <span class="total-label">{{ total_responses }} responses</span>
+        <div class="topbar-actions">
+          <a class="topbar-link" href="{% url 'password_change' %}">Change password</a>
+          <form class="topbar-link-form" method="post" action="{% url 'logout' %}">
+            {% csrf_token %}
+            <button class="topbar-link" type="submit">Log out</button>
+          </form>
+        </div>
       </div>
     </header>
 
@@ -856,10 +879,10 @@
       <div class="ov-hero reveal">
         <div class="ov-hero-eyebrow">
           <iconify-icon icon="hugeicons:chart-bar-line"></iconify-icon>
-          NHS Staff Survey &mdash; MerseyVoice
+          NHS Staff Survey &ndash; MerseyVoice
         </div>
         <h2>Understanding our people<br>through their own words</h2>
-        <p>Explore open-text responses from the NHS Staff Survey — from broad participation patterns down to individual voices.</p>
+        <p>Explore open-text responses from the NHS Staff Survey – from broad participation patterns down to individual voices.</p>
         <div class="ov-hero-stats">
           <div class="ov-hero-stat">
             <span class="ov-hero-stat-val" data-counter>{{ total_responses }}</span>
@@ -1021,7 +1044,7 @@
       <!-- Theme list -->
       <div class="card reveal">
         <div class="card-head">
-          <div><h3>All Themes</h3><div class="card-sub">Ranked by mention count — click to filter quotes</div></div>
+          <div><h3>All Themes</h3><div class="card-sub">Ranked by mention count – click to filter quotes</div></div>
         </div>
         <div class="theme-list" id="theme-list">
           {% for row in theme_rows %}
@@ -1231,21 +1254,53 @@
   /* ─── PIN SYSTEM ──────────────────────────────── */
   // All quote objects indexed by row_id so onclick handlers never carry JSON payloads
   const quoteDataMap = new Map();
-  const PIN_KEY  = 'mct_pinned_v1';
-  const NOTE_KEY = 'mct_notes_v1';
+  const userState = { pins: [], notes: {}, hideTags: false };
 
-  function getPinned()     { try { return JSON.parse(localStorage.getItem(PIN_KEY) || '[]'); } catch { return []; } }
-  function getNotes()      { try { return JSON.parse(localStorage.getItem(NOTE_KEY) || '{}'); } catch { return {}; } }
+  function getPinned() { return userState.pins; }
+  function getNotes()  { return userState.notes; }
+
+  function getCSRFToken() {
+    const match = document.cookie.match(/(?:^|;\s*)csrftoken=([^;]+)/);
+    return match ? decodeURIComponent(match[1]) : '';
+  }
+
+  function persistUserState(payload) {
+    return fetch('/api/user-state/', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-CSRFToken': getCSRFToken(),
+      },
+      body: JSON.stringify(payload),
+    }).catch(() => null);
+  }
+
+  async function loadUserState() {
+    try {
+      const resp = await fetch('/api/user-state/');
+      if (!resp.ok) return;
+      const data = await resp.json();
+      userState.pins = Array.isArray(data.pins) ? data.pins : [];
+      userState.notes = (data.notes && typeof data.notes === 'object') ? data.notes : {};
+      userState.hideTags = !!data.hide_tags;
+    } catch {
+      userState.pins = [];
+      userState.notes = {};
+      userState.hideTags = false;
+    }
+  }
+
   function saveNote(rowId, text) {
     const notes = getNotes();
     if (text.trim()) notes[rowId] = text;
     else delete notes[rowId];
-    localStorage.setItem(NOTE_KEY, JSON.stringify(notes));
+    persistUserState({ notes });
   }
   function isPinned(rowId) { return getPinned().some(p => p.row_id === rowId); }
 
   function savePinned(pins) {
-    localStorage.setItem(PIN_KEY, JSON.stringify(pins));
+    userState.pins = pins;
+    persistUserState({ pins: userState.pins });
     updatePinBadge();
     if (document.querySelector('[data-panel="pinned"]')?.classList.contains('active')) renderPinnedTab();
   }
@@ -1276,7 +1331,7 @@
   }
 
   /* ─── Event delegation for quote interactions ──── */
-  // Handles pin clicks and expand/collapse — no inline onclick needed
+  // Handles pin clicks and expand/collapse – no inline onclick needed
   document.addEventListener('click', e => {
     // Overview "Go to" card buttons
     const gotoBtn = e.target.closest('[data-goto]');
@@ -1340,12 +1395,13 @@
     // Hide tags toggle
     if (e.target.closest('#hide-tags-btn')) {
       const nowHidden = document.body.classList.toggle('hide-tags');
-      localStorage.setItem(HIDE_TAGS_KEY, nowHidden ? '1' : '0');
+      userState.hideTags = nowHidden;
+      persistUserState({ hide_tags: nowHidden });
       syncHideTagsBtn(nowHidden);
       return;
     }
 
-    // Quote / pinned card click — show respondent popup
+    // Quote / pinned card click – show respondent popup
     const clickableCard = e.target.closest('.quote-card, .pinned-card');
     if (clickableCard && !e.target.closest('.pin-btn,.unpin-btn,.quote-expand-btn,.note-toggle-btn,.pin-note,.show-more-btn,.btn-remove-all')) {
       if (activePopupCard === clickableCard) { hideQuotePopup(); return; }
@@ -1736,10 +1792,8 @@
   }
 
   /* ─── Hide-tags toggle ─────────────────────────── */
-  const HIDE_TAGS_KEY = 'mct_hide_tags_v1';
-
   function initHideTags() {
-    const hidden = localStorage.getItem(HIDE_TAGS_KEY) === '1';
+    const hidden = !!userState.hideTags;
     document.body.classList.toggle('hide-tags', hidden);
     syncHideTagsBtn(hidden);
   }
@@ -2130,19 +2184,21 @@
   }
 
   /* ─── Boot ────────────────────────────────────── */
-  initReveal();
-  initCounters();
-  initOverviewChart(parseJSON('overview-chart-data'));
-  setupOverviewFilter();
-  setupThemesFilter();
-  attachThemeRowHandlers();
-  setupTagFilter();
-  updatePinBadge();
-  initHideTags();
-  setupKeywordSearch();
-  initTabs();
-
-  window.addEventListener('resize', () => Object.values(CHARTS).forEach(c => c?.resize()));
+  (async function boot() {
+    initReveal();
+    initCounters();
+    initOverviewChart(parseJSON('overview-chart-data'));
+    setupOverviewFilter();
+    setupThemesFilter();
+    attachThemeRowHandlers();
+    setupTagFilter();
+    setupKeywordSearch();
+    await loadUserState();
+    updatePinBadge();
+    initHideTags();
+    initTabs();
+    window.addEventListener('resize', () => Object.values(CHARTS).forEach(c => c?.resize()));
+  })();
 </script>
 </body>
 </html>
