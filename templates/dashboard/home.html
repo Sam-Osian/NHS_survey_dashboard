@@ -757,6 +757,26 @@
     .quote-card, .pinned-card { cursor: default; }
     .quote-card .quote-text, .pinned-card .pinned-card-text { cursor: pointer; }
 
+    /* ── Demographics Tab ──────────────────────────── */
+    .dg-dim-pills { display: flex; flex-wrap: wrap; gap: 8px; }
+    .dg-dim-pill {
+      padding: 6px 14px; border-radius: 99px; font-size: 12px; font-weight: 700;
+      border: 1px solid var(--border); background: var(--surface-2); color: var(--ink-2);
+      cursor: pointer; transition: border-color var(--transition), background var(--transition), color var(--transition);
+    }
+    .dg-dim-pill:hover { border-color: rgba(59,91,219,.3); background: #f0f4ff; color: var(--brand); }
+    .dg-dim-pill.active { background: var(--brand); color: #fff; border-color: var(--brand); }
+    .dg-warning {
+      margin-bottom: 12px; padding: 10px 12px; border-radius: var(--r-sm);
+      background: var(--amber-l); color: var(--amber); font-size: 12px; font-weight: 600;
+      border: 1px solid rgba(217,119,6,.18);
+    }
+    .dg-empty {
+      padding: 40px 20px; text-align: center; color: var(--ink-3);
+      display: flex; flex-direction: column; align-items: center; gap: 10px;
+    }
+    .dg-empty iconify-icon { font-size: 34px; opacity: .28; }
+
     /* ── Overview / About page ─────────────────────── */
     .ov-hero {
       background: linear-gradient(135deg, var(--brand) 0%, #253564 100%);
@@ -842,6 +862,8 @@
     @media (max-width: 1000px) {
       .center { padding: 24px 20px; }
       .viz-grid-60-40 { grid-template-columns: 1fr; }
+      .dg-summary-grid { grid-template-columns: 1fr 1fr; }
+      .dg-quotes-grid { grid-template-columns: 1fr; }
     }
 
     @media (max-width: 800px) {
@@ -885,6 +907,10 @@
       <button type="button" class="nav-item" data-tab="themes">
         <iconify-icon icon="hugeicons:analytics-02"></iconify-icon>
         <span>Themes &amp; Quotes</span>
+      </button>
+      <button type="button" class="nav-item" data-tab="demographics">
+        <iconify-icon icon="hugeicons:user-multiple-02"></iconify-icon>
+        <span>Demographics</span>
       </button>
       <button type="button" class="nav-item" data-tab="pinned">
         <iconify-icon icon="hugeicons:bookmark-02"></iconify-icon>
@@ -1162,11 +1188,48 @@
     <section class="tab-panel" data-panel="pinned">
       <div class="privacy-notice reveal">
         <iconify-icon icon="hugeicons:lock-01"></iconify-icon>
-        Pinned quotes and notes are private to your browser, unless downloaded.
+        Pinned quotes and notes are private to your signed-in account.
       </div>
       <div class="card reveal" id="pinned-tab-card">
         <!-- rendered by JS -->
       </div>
+    </section>
+
+    <!-- ══ DEMOGRAPHICS TAB ══ -->
+    <section class="tab-panel" data-panel="demographics">
+
+      <div class="card reveal">
+        <div class="card-head">
+          <div>
+            <h2>Where do staff experiences diverge?</h2>
+            <div class="card-sub">Select a demographic group to compare how different staff groups discuss each theme.</div>
+          </div>
+        </div>
+        <div class="card-body">
+          <div class="dg-dim-pills" id="demo-dim-pills">
+            <button class="dg-dim-pill active" data-dim="Sexuality">Sexuality</button>
+            <button class="dg-dim-pill" data-dim="Gender">Gender</button>
+            <button class="dg-dim-pill" data-dim="Ethnicity">Ethnicity</button>
+            <button class="dg-dim-pill" data-dim="Disability">Disability</button>
+            <button class="dg-dim-pill" data-dim="Age group">Age group</button>
+            <button class="dg-dim-pill" data-dim="Pay band">Pay band</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="card reveal">
+        <div class="card-head">
+          <div>
+            <h3 id="dg-chart-title">Theme mentions by group</h3>
+            <div class="card-sub" id="dg-chart-sub">Sorted by size of gap — biggest differences at the top.</div>
+          </div>
+        </div>
+        <div class="card-body">
+          <div class="dg-warning" id="demo-warning" style="display:none;"></div>
+          <div id="dg-chart" style="width:100%;height:520px;"></div>
+        </div>
+      </div>
+
     </section>
 
     {% endif %}
@@ -2200,6 +2263,113 @@
     window.open(URL.createObjectURL(blob), '_blank');
   }
 
+  /* ─── Demographics tab ────────────────────────── */
+  function setupDemoTab() {
+    const pills = [...document.querySelectorAll('.dg-dim-pill')];
+    let currentDim = 'Sexuality';
+
+    pills.forEach(pill => {
+      pill.addEventListener('click', () => {
+        pills.forEach(p => p.classList.remove('active'));
+        pill.classList.add('active');
+        currentDim = pill.dataset.dim;
+        fetchAndRender();
+      });
+    });
+
+    function renderChart(data) {
+      const gaps = data.gaps;
+
+      if (data.warning) {
+        $id('demo-warning').textContent = data.warning;
+        $id('demo-warning').style.display = 'block';
+      } else {
+        $id('demo-warning').style.display = 'none';
+      }
+
+      const labelA = data.cohort_a_label;
+      const labelB = data.cohort_b_label;
+      $id('dg-chart-title').textContent = `${labelA} vs ${labelB}`;
+      $id('dg-chart-sub').textContent =
+        `${data.cohort_a_n.toLocaleString()} and ${data.cohort_b_n.toLocaleString()} respondents · sorted by size of gap`;
+
+      // Sort by abs gap descending, then reverse so biggest is at top in a horizontal chart
+      const sorted = [...gaps].sort((a, b) => b.abs_gap_pp - a.abs_gap_pp);
+      const themes = sorted.map(g => g.metric).reverse();
+      const aPcts  = sorted.map(g => g.a_pct).reverse();
+      const bPcts  = sorted.map(g => g.b_pct).reverse();
+
+      const h = Math.max(320, themes.length * 36 + 80);
+      $id('dg-chart').style.height = h + 'px';
+
+      if (!CHARTS.demo) CHARTS.demo = echarts.init($id('dg-chart'), null, { renderer: 'canvas' });
+
+      CHARTS.demo.setOption({
+        animation: true,
+        animationDuration: 500,
+        grid: { left: 10, right: 20, top: 48, bottom: 10, containLabel: true },
+        legend: {
+          data: [labelA, labelB],
+          top: 10, left: 10,
+          textStyle: { fontSize: 12, color: '#4b5671' },
+        },
+        tooltip: {
+          trigger: 'axis',
+          axisPointer: { type: 'shadow' },
+          backgroundColor: '#fff',
+          borderColor: '#e4e7ef',
+          borderWidth: 1,
+          textStyle: { color: '#0f1624', fontSize: 13 },
+          formatter(params) {
+            const a = params.find(p => p.seriesName === labelA);
+            const b = params.find(p => p.seriesName === labelB);
+            const gap = (a.value - b.value).toFixed(1);
+            const sign = gap > 0 ? '+' : '';
+            return `<b>${esc(params[0].axisValue)}</b><br/>
+              ${labelA}: <b>${a.value}%</b><br/>
+              ${labelB}: <b>${b.value}%</b><br/>
+              Gap: <b>${sign}${gap}pp</b>`;
+          },
+        },
+        xAxis: {
+          type: 'value', max: 100,
+          axisLabel: { formatter: '{value}%', fontSize: 11, color: '#8892ab' },
+          splitLine: { lineStyle: { color: 'rgba(0,0,0,.06)' } },
+        },
+        yAxis: {
+          type: 'category', data: themes,
+          axisLabel: { fontSize: 12, color: '#4b5671', width: 200, overflow: 'truncate' },
+        },
+        series: [
+          {
+            name: labelA, type: 'bar', data: aPcts, barMaxWidth: 16,
+            itemStyle: { color: '#3b5bdb', borderRadius: [0, 3, 3, 0] },
+          },
+          {
+            name: labelB, type: 'bar', data: bPcts, barMaxWidth: 16,
+            itemStyle: { color: '#adb5bd', borderRadius: [0, 3, 3, 0] },
+          },
+        ],
+      }, true);
+    }
+
+    function fetchAndRender() {
+      const params = new URLSearchParams({ dim: currentDim, scope: 'themes', min_n: '15' });
+      fetch(`/api/demographics/?${params}`)
+        .then(r => r.json())
+        .then(data => {
+          if (data.error) {
+            $id('demo-warning').textContent = data.error;
+            $id('demo-warning').style.display = 'block';
+            return;
+          }
+          renderChart(data);
+        });
+    }
+
+    fetchAndRender();
+  }
+
   /* ─── Tab switching ───────────────────────────── */
   let themesInitialised = false;
 
@@ -2242,6 +2412,7 @@
     attachThemeRowHandlers();
     setupTagFilter();
     setupKeywordSearch();
+    setupDemoTab();
     await loadUserState();
     updatePinBadge();
     initHideTags();

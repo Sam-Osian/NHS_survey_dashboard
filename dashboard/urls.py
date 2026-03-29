@@ -13,4 +13,5 @@ urlpatterns = [
         name="api_theme_quotes",
     ),
     path("api/user-state/", login_required(views.api_user_state), name="api_user_state"),
+    path("api/demographics/", login_required(views.api_demographics), name="api_demographics"),
 ]

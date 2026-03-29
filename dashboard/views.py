@@ -34,8 +34,76 @@ DEMOGRAPHIC_COLS = [
 
 TAGS = ["suggestion", "urgent", "positive", "negative"]
 TRUTHY_VALUES = {"yes", "true", "1"}
-VALID_TABS = {"overview", "themes"}
+VALID_TABS = {"overview", "about", "response-rate", "themes", "demographics", "pinned"}
 DATASET_PATH = Path(__file__).resolve().parent.parent / "data" / "outputs" / "2024" / "comments_2024.csv"
+
+_COHORT_DEFS = {
+    "Sexuality": ("LGBO", "Heterosexual or Straight"),
+    "Gender": ("Female", "Male"),
+    "Ethnicity": ("BME", "White"),
+    "Disability": ("Disability", "No Disability"),
+    "Age group": ("21–40", "41+"),
+    "Pay band": ("Band 2–4", "Band 5+"),
+}
+
+
+def _classify_for_dim(dim: str, value: str) -> str | None:
+    v = value.strip()
+    lower = v.lower()
+    if lower in {"", "not available", "n/a", "prefer not to say"}:
+        return None
+    if dim == "Sexuality":
+        if v == "LGBO":
+            return "a"
+        if v == "Heterosexual or Straight":
+            return "b"
+        return None
+    if dim == "Gender":
+        if v == "Female":
+            return "a"
+        if v == "Male":
+            return "b"
+        return None
+    if dim == "Ethnicity":
+        if v == "BME":
+            return "a"
+        if v == "White":
+            return "b"
+        return None
+    if dim == "Disability":
+        if v == "Disability":
+            return "a"
+        if v == "No Disability":
+            return "b"
+        return None
+    if dim == "Age group":
+        if v in {"21-30", "31-40"}:
+            return "a"
+        if v in {"41-50", "51-65", "66+"}:
+            return "b"
+        return None
+    if dim == "Pay band":
+        band = None
+        if lower.startswith("band "):
+            try:
+                band = int(lower.split("band ", 1)[1].split()[0])
+            except Exception:
+                band = None
+        if band in {2, 3, 4}:
+            return "a"
+        if band is not None and band >= 5:
+            return "b"
+        return None
+    return None
+
+
+def _strength(abs_gap: float, hit_a: int, hit_b: int) -> str:
+    support = min(hit_a, hit_b)
+    if abs_gap >= 8 and support >= 20:
+        return "notable"
+    if abs_gap >= 5 and support >= 10:
+        return "emerging"
+    return "marginal"
 
 
 def _load_data(csv_path: Path) -> tuple[pd.DataFrame, list[str]]:
@@ -144,6 +212,9 @@ def home(request):
     context["active_theme_count"] = sum(
         1 for col in theme_cols if int(_truthy_mask(df[col]).sum()) > 0
     )
+    context["demographic_options_json"] = json.dumps({
+        col: _options_for_column(df, col) for col in DEMOGRAPHIC_COLS
+    })
 
     # Overview tab state
     overview_group = request.GET.get("overview_group", DEMOGRAPHIC_COLS[0])
@@ -564,3 +635,147 @@ def api_user_state(request):
 
     state.save()
     return JsonResponse({"ok": True})
+
+
+def api_demographics(request):
+    dim = request.GET.get("dim", "Sexuality")
+    scope = request.GET.get("scope", "all")
+    try:
+        min_n = max(5, int(request.GET.get("min_n", "15")))
+    except ValueError:
+        min_n = 15
+
+    if not DATASET_PATH.exists():
+        return JsonResponse({"error": "Dataset not found"}, status=500)
+
+    try:
+        df, missing_cols = _load_data(DATASET_PATH)
+    except Exception as exc:
+        return JsonResponse({"error": str(exc)}, status=500)
+
+    if missing_cols:
+        return JsonResponse({"error": "Missing columns"}, status=500)
+
+    if dim not in _COHORT_DEFS or dim not in df.columns:
+        return JsonResponse({"error": "Invalid demographic dimension."}, status=400)
+
+    all_cols = df.columns.tolist()
+    theme_cols = [c for c in all_cols if c not in DEMOGRAPHIC_COLS + ["Comment"] + TAGS]
+
+    norm_dim = df[dim].fillna("").astype(str).str.strip()
+    classes = norm_dim.map(lambda v: _classify_for_dim(dim, v))
+    mask_a = classes == "a"
+    mask_b = classes == "b"
+
+    cohort_a_label, cohort_b_label = _COHORT_DEFS[dim]
+    cohort_a_df = df[mask_a].copy()
+    cohort_b_df = df[mask_b].copy()
+    total_n = len(df)
+    a_n = len(cohort_a_df)
+    b_n = len(cohort_b_df)
+    excluded_n = int(total_n - a_n - b_n)
+    excluded_breakdown = (
+        norm_dim[~(mask_a | mask_b)]
+        .replace("", "Blank")
+        .value_counts()
+        .head(5)
+        .to_dict()
+    )
+
+    if a_n == 0 or b_n == 0:
+        return JsonResponse(
+            {
+                "dim": dim,
+                "cohort_a_label": cohort_a_label,
+                "cohort_b_label": cohort_b_label,
+                "total_n": total_n,
+                "cohort_a_n": a_n,
+                "cohort_b_n": b_n,
+                "excluded_n": excluded_n,
+                "excluded_breakdown": excluded_breakdown,
+                "warning": "One of the cohorts has no rows for this comparison.",
+                "gaps": [],
+            }
+        )
+
+    if scope == "themes":
+        metric_cols = [(c, "theme") for c in theme_cols]
+    elif scope == "tags":
+        metric_cols = [(c, "tag") for c in TAGS if c in df.columns]
+    else:
+        metric_cols = [(c, "theme") for c in theme_cols] + [(c, "tag") for c in TAGS if c in df.columns]
+
+    def _sample_quotes(frame: pd.DataFrame, metric: str) -> list[dict]:
+        metric_hits = frame[_truthy_mask(frame[metric])] if metric in frame.columns else frame.iloc[0:0]
+        items = []
+        for idx, row in metric_hits.head(3).iterrows():
+            comment = str(row.get("Comment", "")).strip()
+            if not comment:
+                continue
+            items.append(
+                {
+                    "row_id": int(idx),
+                    "comment": comment,
+                    "demographics": {
+                        col: str(row[col]).strip()
+                        for col in DEMOGRAPHIC_COLS
+                        if col in row and pd.notna(row[col]) and str(row[col]).strip() not in ("", "nan")
+                    },
+                }
+            )
+        return items
+
+    gaps = []
+    for metric, kind in metric_cols:
+        if metric not in df.columns:
+            continue
+        a_hits = int(_truthy_mask(cohort_a_df[metric]).sum()) if a_n else 0
+        b_hits = int(_truthy_mask(cohort_b_df[metric]).sum()) if b_n else 0
+        a_pct = round((a_hits / a_n) * 100, 1) if a_n else 0.0
+        b_pct = round((b_hits / b_n) * 100, 1) if b_n else 0.0
+        gap = round(a_pct - b_pct, 1)
+        if a_hits == 0 and b_hits == 0:
+            continue
+
+        gaps.append(
+            {
+                "metric": metric,
+                "kind": kind,
+                "a_hits": a_hits,
+                "b_hits": b_hits,
+                "a_pct": a_pct,
+                "b_pct": b_pct,
+                "gap_pp": gap,
+                "abs_gap_pp": abs(gap),
+                "direction": "higher" if gap > 0 else "lower" if gap < 0 else "equal",
+                "strength": _strength(abs(gap), a_hits, b_hits),
+                "quotes_a": _sample_quotes(cohort_a_df, metric),
+                "quotes_b": _sample_quotes(cohort_b_df, metric),
+            }
+        )
+
+    gaps.sort(key=lambda item: item["abs_gap_pp"], reverse=True)
+
+    warning = None
+    if min(a_n, b_n) < min_n:
+        warning = (
+            f"Small sample: one or both groups have fewer than {min_n} respondents — "
+            f"treat these findings with caution."
+        )
+
+    return JsonResponse(
+        {
+            "dim": dim,
+            "cohort_a_label": cohort_a_label,
+            "cohort_b_label": cohort_b_label,
+            "total_n": total_n,
+            "cohort_a_n": a_n,
+            "cohort_b_n": b_n,
+            "excluded_n": excluded_n,
+            "excluded_breakdown": excluded_breakdown,
+            "warning": warning,
+            "gaps": gaps[:25],
+        }
+    )
+
+
