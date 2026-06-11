@@ -34,7 +34,7 @@ DEMOGRAPHIC_COLS = [
 
 TAGS = ["suggestion", "urgent", "positive", "negative"]
 TRUTHY_VALUES = {"yes", "true", "1"}
-VALID_TABS = {"overview", "about", "response-rate", "themes", "demographics", "pinned"}
+VALID_TABS = {"overview", "about", "themes", "demographics"}
 DATASET_PATH = Path(__file__).resolve().parent.parent / "data" / "outputs" / "2024" / "comments_2024.csv"
 
 _COHORT_DEFS = {

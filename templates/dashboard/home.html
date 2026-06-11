@@ -858,6 +858,85 @@
     .ov-support a  { color: var(--accent); font-weight: 600; text-decoration: none; }
     .ov-support a:hover { text-decoration: underline; }
 
+    /* ── Nav divider & sidebar utilities ───────────── */
+    .nav-divider {
+      height: 1px;
+      background: rgba(255,255,255,.08);
+      margin: 10px 0 8px;
+    }
+    .sidebar-support {
+      margin-top: auto;
+      padding: 14px 10px 0;
+      font-size: 11px;
+      color: rgba(255,255,255,.28);
+      line-height: 1.6;
+    }
+    .sidebar-support a {
+      color: rgba(255,255,255,.5);
+      text-decoration: none;
+      font-weight: 600;
+    }
+    .sidebar-support a:hover { color: rgba(255,255,255,.8); }
+
+    /* ── Pinned Quotes Drawer ───────────────────────── */
+    .pinned-drawer {
+      position: fixed; inset: 0; z-index: 400;
+      display: flex; justify-content: flex-end;
+      visibility: hidden; pointer-events: none;
+    }
+    .pinned-drawer.open { visibility: visible; pointer-events: auto; }
+    .pinned-drawer-backdrop {
+      position: absolute; inset: 0;
+      background: rgba(15,22,36,.45);
+      opacity: 0;
+      transition: opacity 260ms ease;
+      backdrop-filter: blur(2px);
+      -webkit-backdrop-filter: blur(2px);
+    }
+    .pinned-drawer.open .pinned-drawer-backdrop { opacity: 1; }
+    .pinned-drawer-panel {
+      position: relative; width: 460px; max-width: 100vw; height: 100%;
+      background: var(--surface); border-left: 1px solid var(--border);
+      box-shadow: var(--shadow-deep);
+      display: flex; flex-direction: column;
+      transform: translateX(100%);
+      transition: transform 300ms cubic-bezier(.4,0,.2,1);
+    }
+    .pinned-drawer.open .pinned-drawer-panel { transform: translateX(0); }
+    .pinned-drawer-head {
+      display: flex; align-items: center; justify-content: space-between; gap: 12px;
+      padding: 20px 24px 18px;
+      border-bottom: 1px solid var(--border-2);
+      flex-shrink: 0;
+    }
+    .pinned-drawer-head h2 { font-size: 15px; font-weight: 700; letter-spacing: -.02em; }
+    .pinned-drawer-head .card-sub { margin-top: 2px; }
+    .pinned-drawer-close {
+      width: 32px; height: 32px; border-radius: var(--r-sm);
+      border: 1px solid var(--border); background: var(--surface-2);
+      color: var(--ink-3); font-size: 16px;
+      display: grid; place-items: center; cursor: pointer; flex-shrink: 0;
+      transition: background var(--transition), color var(--transition), border-color var(--transition);
+    }
+    .pinned-drawer-close:hover { background: var(--border-2); color: var(--ink); border-color: var(--border); }
+    .pinned-drawer-body {
+      flex: 1; overflow-y: auto; overscroll-behavior: contain;
+    }
+    .pinned-drawer-privacy {
+      display: flex; align-items: center; gap: 8px;
+      margin: 16px 20px 0;
+      padding: 9px 12px; border-radius: var(--r-sm);
+      background: var(--surface-2); border: 1px solid var(--border-2);
+      font-size: 11.5px; color: var(--ink-3);
+    }
+    .pinned-drawer-privacy iconify-icon { font-size: 13px; flex-shrink: 0; }
+
+    /* ── Overview summary sections ──────────────────── */
+    .ov-section-label {
+      font-size: 11px; font-weight: 700; text-transform: uppercase;
+      letter-spacing: .08em; color: var(--ink-3); margin-bottom: 12px;
+    }
+
     /* ── Responsive ────────────────────────────────── */
     @media (max-width: 1000px) {
       .center { padding: 24px 20px; }
@@ -874,6 +953,7 @@
       .topbar { flex-direction: column; }
       .topbar-meta { align-items: flex-start; }
       .tr-bar-wrap { display: none; }
+      .pinned-drawer-panel { width: 100vw; }
     }
   </style>
 </head>
@@ -900,10 +980,6 @@
         <iconify-icon icon="hugeicons:home-01"></iconify-icon>
         <span>Overview</span>
       </button>
-      <button type="button" class="nav-item" data-tab="response-rate">
-        <iconify-icon icon="hugeicons:dashboard-square-01"></iconify-icon>
-        <span>Response Rate</span>
-      </button>
       <button type="button" class="nav-item" data-tab="themes">
         <iconify-icon icon="hugeicons:analytics-02"></iconify-icon>
         <span>Themes &amp; Quotes</span>
@@ -912,12 +988,19 @@
         <iconify-icon icon="hugeicons:user-multiple-02"></iconify-icon>
         <span>Demographics</span>
       </button>
-      <button type="button" class="nav-item" data-tab="pinned">
-        <iconify-icon icon="hugeicons:bookmark-02"></iconify-icon>
-        <span>Pinned Quotes</span>
-        <span class="nav-badge" id="pin-badge" style="display:none;"></span>
-      </button>
     </nav>
+
+    <div class="nav-divider"></div>
+
+    <button type="button" class="nav-item" id="open-pinned-drawer">
+      <iconify-icon icon="hugeicons:bookmark-02"></iconify-icon>
+      <span>Pinned Quotes</span>
+      <span class="nav-badge" id="pin-badge" style="display:none;"></span>
+    </button>
+
+    <div class="sidebar-support">
+      <p>Questions? Contact <a href="mailto:sam.osian@oreliandata.co.uk">Sam Osian</a></p>
+    </div>
 
   </aside>
 
@@ -957,7 +1040,6 @@
           NHS Staff Survey &ndash; MerseyVoice
         </div>
         <h2>Understanding our people<br>through their own words</h2>
-        <p>Explore open-text responses from the NHS Staff Survey – from broad participation patterns down to individual voices.</p>
         <div class="ov-hero-stats">
           <div class="ov-hero-stat">
             <span class="ov-hero-stat-val" data-counter>{{ total_responses }}</span>
@@ -970,83 +1052,12 @@
         </div>
       </div>
 
-      <!-- Feature cards -->
-      <div class="ov-cards">
-
-        <div class="ov-card reveal">
-          <div class="ov-card-icon ov-card-blue">
-            <iconify-icon icon="hugeicons:dashboard-square-01"></iconify-icon>
-          </div>
-          <h3>Response Rate</h3>
-          <p>See how participation breaks down by occupation, pay band, age, service line, and more.</p>
-          <div class="ov-card-foot">
-            <button type="button" data-goto="response-rate">
-              <iconify-icon icon="hugeicons:arrow-right-01"></iconify-icon>
-              Go to Response Rate
-            </button>
-          </div>
-        </div>
-
-        <div class="ov-card reveal">
-          <div class="ov-card-icon ov-card-teal">
-            <iconify-icon icon="hugeicons:analytics-02"></iconify-icon>
-          </div>
-          <h3>Themes &amp; Quotes</h3>
-          <p>Browse comments by theme, demographic group, sentiment tag, or custom search.</p>
-          <div class="ov-card-foot">
-            <button type="button" data-goto="themes">
-              <iconify-icon icon="hugeicons:arrow-right-01"></iconify-icon>
-              Go to Themes &amp; Quotes
-            </button>
-          </div>
-        </div>
-
-        <div class="ov-card reveal">
-          <div class="ov-card-icon ov-card-amber">
-            <iconify-icon icon="hugeicons:bookmark-02"></iconify-icon>
-          </div>
-          <h3>Pinned Quotes</h3>
-          <p>Pin staff comments and annotate them with your own notes. Export your collection as a formatted PDF report in one click.</p>
-          <div class="ov-card-foot">
-            <button type="button" data-goto="pinned">
-              <iconify-icon icon="hugeicons:arrow-right-01"></iconify-icon>
-              Go to Pinned Quotes
-            </button>
-          </div>
-        </div>
-
-      </div>
-
-      <!-- Technical support -->
-      <div class="ov-support reveal">
-        <div class="ov-support-icon">
-          <iconify-icon icon="hugeicons:customer-service-01"></iconify-icon>
-        </div>
-        <div>
-          <h3>Technical support</h3>
-          <p>For questions about the dashboard, data, or functionality, please contact <strong>Sam Osian</strong> at <a href="mailto:sam.osian@oreliandata.co.uk">sam.osian@oreliandata.co.uk</a>.</p>
-        </div>
-      </div>
-
-    </section>
-
-    <!-- ══ RESPONSE RATE TAB ══ -->
-    <section class="tab-panel" data-panel="response-rate">
-
-      <div class="rr-total reveal">
-        <div class="rr-total-icon"><iconify-icon icon="hugeicons:user-group"></iconify-icon></div>
-        <div>
-          <div class="rr-total-label">Total Responses</div>
-          <div class="rr-total-value" data-counter>{{ total_responses }}</div>
-          <div class="rr-total-sub">All rows in source dataset</div>
-        </div>
-      </div>
-
+      <!-- Who responded? (absorbed from Response Rate) -->
       <div class="card reveal">
         <div class="card-head">
           <div>
-            <h2>Participation Distribution</h2>
-            <div class="card-sub" id="overview-chart-title">Response Mix by {{ overview_group }}</div>
+            <h2>Who responded?</h2>
+            <div class="card-sub" id="overview-chart-title">Response mix by {{ overview_group }}</div>
           </div>
           <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
             <span class="filter-count fc-blue" id="overview-count">{{ overview_count_filtered }} / {{ total_responses }}</span>
@@ -1061,14 +1072,15 @@
           </div>
         </div>
         <div class="card-body" style="padding-bottom:12px;">
-          <div id="overview-chart" class="chart-wrap" style="height:520px;"></div>
+          <div id="overview-chart" class="chart-wrap" style="height:420px;"></div>
           {{ overview_chart_data|json_script:"overview-chart-data" }}
         </div>
       </div>
 
+      <!-- Breakdown table -->
       <div class="card reveal">
-        <div class="card-head"><h3>Breakdown Table</h3></div>
-        <div class="table-scroll" style="max-height:320px; border-radius:0 0 var(--r-lg) var(--r-lg);">
+        <div class="card-head"><h3>Breakdown table</h3></div>
+        <div class="table-scroll" style="max-height:280px; border-radius:0 0 var(--r-lg) var(--r-lg);">
           <table>
             <thead>
               <tr>
@@ -1086,7 +1098,32 @@
         </div>
       </div>
 
+      <!-- What are staff talking about? (top themes preview) -->
+      <div class="card reveal">
+        <div class="card-head">
+          <div>
+            <h3>What are staff talking about?</h3>
+            <div class="card-sub">Most mentioned themes across all responses &ndash; click any theme to explore its quotes</div>
+          </div>
+          <button type="button" class="topbar-link" data-tab="themes" style="flex-shrink:0;">
+            <iconify-icon icon="hugeicons:arrow-right-01"></iconify-icon>
+            All themes
+          </button>
+        </div>
+        <div class="theme-list" id="ov-theme-list">
+          {% for row in theme_rows|slice:":10" %}
+            <div class="theme-row" data-theme="{{ row.theme }}">
+              <span class="tr-name">{{ row.theme }}</span>
+              <div class="tr-bar-wrap"><div class="tr-bar" data-pct="{{ row.bar_pct }}"></div></div>
+              <span class="tr-count">{{ row.count }}</span>
+              <span class="tr-pct">{{ row.percent }}</span>
+            </div>
+          {% endfor %}
+        </div>
+      </div>
+
     </section>
+
 
     <!-- ══ THEMES TAB ══ -->
     <section class="tab-panel" data-panel="themes">
@@ -1184,16 +1221,6 @@
 
     </section>
 
-    <!-- ══ PINNED QUOTES TAB ══ -->
-    <section class="tab-panel" data-panel="pinned">
-      <div class="privacy-notice reveal">
-        <iconify-icon icon="hugeicons:lock-01"></iconify-icon>
-        Pinned quotes and notes are private to your signed-in account.
-      </div>
-      <div class="card reveal" id="pinned-tab-card">
-        <!-- rendered by JS -->
-      </div>
-    </section>
 
     <!-- ══ DEMOGRAPHICS TAB ══ -->
     <section class="tab-panel" data-panel="demographics">
@@ -1240,6 +1267,29 @@
 <div id="quote-popup" style="display:none;" aria-live="polite">
   <div class="qp-header">Respondent</div>
   <div id="qp-fields"></div>
+</div>
+
+<!-- ── Pinned Quotes Drawer ── -->
+<div id="pinned-drawer" class="pinned-drawer" aria-hidden="true">
+  <div class="pinned-drawer-backdrop" id="pinned-drawer-backdrop"></div>
+  <div class="pinned-drawer-panel" role="complementary" aria-label="Pinned Quotes">
+    <div class="pinned-drawer-head">
+      <div>
+        <h2>Pinned Quotes</h2>
+        <div class="card-sub">Private to your account &ndash; pin quotes while exploring themes</div>
+      </div>
+      <button class="pinned-drawer-close" id="close-pinned-drawer" aria-label="Close pinned quotes">
+        <iconify-icon icon="hugeicons:cancel-01"></iconify-icon>
+      </button>
+    </div>
+    <div class="pinned-drawer-body">
+      <div class="pinned-drawer-privacy">
+        <iconify-icon icon="hugeicons:lock-01"></iconify-icon>
+        Your pins and notes are only visible to you.
+      </div>
+      <div id="pinned-tab-card"><!-- rendered by JS --></div>
+    </div>
+  </div>
 </div>
 
 <!-- ── Remove-all-pins confirmation modal ── -->
@@ -1414,7 +1464,7 @@
     userState.pins = pins;
     persistUserState({ pins: userState.pins });
     updatePinBadge();
-    if (document.querySelector('[data-panel="pinned"]')?.classList.contains('active')) renderPinnedTab();
+    if ($id('pinned-drawer')?.classList.contains('open')) renderPinnedTab();
   }
 
   function togglePin(rowId) {
@@ -1444,12 +1494,46 @@
 
   /* ─── Event delegation for quote interactions ──── */
   // Handles pin clicks and expand/collapse – no inline onclick needed
+  /* ─── Drawer open / close ────────────────────── */
+  function openPinnedDrawer() {
+    const drawer = $id('pinned-drawer');
+    if (!drawer) return;
+    drawer.classList.add('open');
+    drawer.setAttribute('aria-hidden', 'false');
+    renderPinnedTab();
+  }
+
+  function closePinnedDrawer() {
+    const drawer = $id('pinned-drawer');
+    if (!drawer) return;
+    drawer.classList.remove('open');
+    drawer.setAttribute('aria-hidden', 'true');
+  }
+
+  /* ─── Overview top-theme click → switch + filter ── */
+  function attachOverviewThemeHandlers() {
+    document.querySelectorAll('#ov-theme-list .theme-row').forEach(row => {
+      row.addEventListener('click', () => {
+        const theme = row.dataset.theme;
+        document.querySelector('[data-tab="themes"]')?.click();
+        setTimeout(() => {
+          const themeRow = document.querySelector(`#theme-list .theme-row[data-theme="${CSS.escape(theme)}"]`);
+          if (!themeRow) return;
+          document.querySelectorAll('#theme-list .theme-row.selected').forEach(r => r.classList.remove('selected'));
+          themeRow.classList.add('selected');
+          selectedTheme = theme;
+          fetchThemeQuotes();
+          themeRow.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }, 120);
+      });
+    });
+  }
+
   document.addEventListener('click', e => {
-    // Overview "Go to" card buttons
-    const gotoBtn = e.target.closest('[data-goto]');
-    if (gotoBtn) {
-      document.querySelector(`[data-tab="${gotoBtn.dataset.goto}"]`)?.click();
-      return;
+    // Pinned drawer open/close
+    if (e.target.closest('#open-pinned-drawer')) { openPinnedDrawer(); return; }
+    if (e.target.closest('#close-pinned-drawer') || e.target.closest('#pinned-drawer-backdrop')) {
+      closePinnedDrawer(); return;
     }
 
     // Pin button
@@ -1860,9 +1944,9 @@
     if (modal) modal.style.display = 'none';
   }
 
-  // Close modal and popup on Esc
+  // Close modal, popup, and drawer on Esc
   document.addEventListener('keydown', e => {
-    if (e.key === 'Escape') { closeRemoveAllModal(); hideQuotePopup(); }
+    if (e.key === 'Escape') { closeRemoveAllModal(); hideQuotePopup(); closePinnedDrawer(); }
   });
   document.addEventListener('click', e => {
     if (e.target === $id('remove-pins-modal')) closeRemoveAllModal();
@@ -2389,11 +2473,11 @@
           });
         }
       });
+      if (tab === 'about') setTimeout(() => animateThemeBars($id('ov-theme-list')), 80);
       if (tab === 'themes') {
         setTimeout(() => animateThemeBars($id('theme-list')), 80);
         if (!themesInitialised) { themesInitialised = true; fetchThemeQuotes(); }
       }
-      if (tab === 'pinned') renderPinnedTab();
       requestAnimationFrame(() => Object.values(CHARTS).forEach(c => c?.resize()));
     }
 
@@ -2406,6 +2490,8 @@
   (async function boot() {
     initReveal();
     initCounters();
+    animateThemeBars($id('ov-theme-list'));
+    attachOverviewThemeHandlers();
     initOverviewChart(parseJSON('overview-chart-data'));
     setupOverviewFilter();
     setupThemesFilter();
